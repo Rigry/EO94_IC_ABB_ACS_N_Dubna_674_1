@@ -18,7 +18,7 @@ BUILD_DIR = build
 ######################################
 # source
 ######################################
-LIBRARY_PATH = /home/users/dvk/code/mculib2
+LIBRARY_PATH = /home/alexandr/code/mculib2
 
 CPP_SOURCES_F0 = src/main.cpp
 

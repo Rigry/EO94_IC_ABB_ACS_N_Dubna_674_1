@@ -36,11 +36,11 @@
                 "/usr/include",
                 "${workspaceRoot}",
                 "${workspaceRoot}/src",
-                "/home/users/dvk/code/mculib2",
-                "/home/users/dvk/code/mculib2/hal",
-                "/home/users/dvk/code/mculib2/hal/ral",
-                "/home/users/dvk/code/mculib2/STM32F0_files",
-                "/home/users/dvk/code/mculib2/STM32F0_files/CMSIS"
+                "/home/alexandr/code/mculib2",
+                "/home/alexandr/code/mculib2/hal",
+                "/home/alexandr/code/mculib2/hal/ral",
+                "/home/alexandr/code/mculib2/STM32F0_files",
+                "/home/alexandr/code/mculib2/STM32F0_files/CMSIS"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -56,11 +56,11 @@
                     "/usr/include",
                     "${workspaceRoot}",
                     "${workspaceRoot}/src",
-                    "/home/users/dvk/code/mculib2",
-                    "/home/users/dvk/code/mculib2/hal",
-                    "/home/users/dvk/code/mculib2/hal/ral",
-                    "/home/users/dvk/code/mculib2/STM32F0_files",
-                    "/home/users/dvk/code/mculib2/STM32F0_files/CMSIS"
+                    "/home/alexandr/code/mculib2",
+                    "/home/alexandr/code/mculib2/hal",
+                    "/home/alexandr/code/mculib2/hal/ral",
+                    "/home/alexandr/code/mculib2/STM32F0_files",
+                    "/home/alexandr/code/mculib2/STM32F0_files/CMSIS"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""

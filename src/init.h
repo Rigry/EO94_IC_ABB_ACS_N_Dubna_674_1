@@ -13,11 +13,19 @@
 using RXpin = PA3;
 using TXpin = PA2;
 using RTSpin = PA1;
-using LEDpin = PB0;
 const size_t bufSize = 255;
 using USART_ = USART<USART1, bufSize, RXpin, TXpin, RTSpin, LEDpin>;
 USART_ uart;
 
+struct Sensors {
+   bool Right     :1;  // Bit 0 Right: Right Emergency Sensor
+   bool Left      :1;  // Bit 1 Left: Left Emergensy Sensor
+   bool Tilt      :1;  // Bit 2 Tilt: Emergensy Sensor Tilt
+   bool Origin    :1;  // Bit 3 Origin: Origin Sensor
+   bool Up        :1;  // Bit 4 Up: Up Sensor
+   bool Down      :1;  // Bit 5 Down: Down Sensor
+   uint16_t res   :10; // Bits 15:6 res: Reserved, must be kept cleared
+};
 struct InRegs {
    USART_::sSettings uartSet;
    uint16_t          modbusAddress;
@@ -29,6 +37,9 @@ struct OutRegs {
    uint16_t          factoryNumber;
    USART_::sSettings uartSet;
    uint16_t          modbusAddress;
+   int16_t           coordinate;
+   Sensors           sensors;
+   
 };
 auto modbus = MBslave<InRegs, OutRegs, USART_> (uart);
 
@@ -48,8 +59,7 @@ struct FlashData {
    };
    uint8_t modbusAddress = 1;
 };
-const uint8_t flashSector = 20;
-auto flash = Flash<FlashData, flashSector> ( FlashData{} );
+auto flash = Flash<FlashData, 20_page> ( FlashData{} );
 
 
 
