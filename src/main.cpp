@@ -1,11 +1,37 @@
 #include "init.h"
+#include "vertical.h"
+#include "horizontal.h"
 #include "ring_buffer.h"
+#include "pin.h"
+#include "global.h"
+#include "search.h"
+#include "automatic.h"
+#include "calibration.h"
+#include "manual.h"
 
 /// реакция на изменение входных регистров модбаса
 void reaction (uint16_t registrAddress);
 
 // для отладки
-RingBuffer<30> ring;
+// RingBuffer<30> ring;
+using SenseRight = PA10;
+using SenseLeft  = PA11;
+using Origin     = PA12;
+using Speed      = PA13;
+using Tilt       = PA14;
+using Start      = PA15;
+using Side       = PB0;
+using Stop       = PB1;
+
+// <SenseRight> ::clockEnable;
+// SenseLeft  ::clockEnable();
+// Origin     ::clockEnable();
+
+int16_t min_coordinate;
+int16_t max_coordinate;
+
+Horizontal <Speed, Start, Side, Stop> horizontal {flash.delta_coordinate};
+
 
 
 int main(void)
@@ -27,16 +53,12 @@ int main(void)
    while (1)
    {
       modbus (reaction);
-
-
       // для отладки
-      ring.push (SysTick->VAL);
+      // ring.push (SysTick->VAL);
       // спим до прерывания
       __WFI();
    }
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // РЕАКЦИЯ НА КОМАНДЫ МОДБАС
@@ -72,6 +94,26 @@ void reaction (uint16_t registrAddress)
          unblock = true;
          break;
 
+      case ADR (coordinate):
+         horizontal.coordinate = modbus.inRegs.coordinate;
+         break;
+
+      case ADR (delta_coordinate):
+         flash.delta_coordinate
+            = horizontal.delta_coordinate
+            = modbus.inRegs.delta_coordinate;
+         break;
+
+      case ADR (state):
+         if (modbus.inRegs.state.mode == Mode::Manual)
+            global = Global::Manual_;
+         else if (modbus.inRegs.state.mode == Mode::Auto)
+            global = Global::Automatic;            
+         break;
+
+      case ADR (zone):
+
+         break;
       default: break;
    }
 }
