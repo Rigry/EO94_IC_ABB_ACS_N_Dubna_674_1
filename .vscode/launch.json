@@ -2,6 +2,63 @@
 	
 	"version": "0.2.0",
 	"configurations": [
+		{
+			"name": "test_calibration",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/test/build/test_calibration",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": true,
+			"MIMode": "gdb",
+			"setupCommands": [
+				 {
+					  "description": "Enable pretty-printing for gdb",
+					  "text": "-enable-pretty-printing",
+					  "ignoreFailures": true
+				 }
+			]
+		},
+	{
+		"name": "test_search",
+		"type": "cppdbg",
+		"request": "launch",
+		"program": "${workspaceFolder}/test/build/test_search",
+		"args": [],
+		"stopAtEntry": false,
+		"cwd": "${workspaceFolder}",
+		"environment": [],
+		"externalConsole": true,
+		"MIMode": "gdb",
+		"setupCommands": [
+			 {
+				  "description": "Enable pretty-printing for gdb",
+				  "text": "-enable-pretty-printing",
+				  "ignoreFailures": true
+			 }
+		]
+	},
+		{
+			"name": "test_horizontal",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/test/build/test_horizontal",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": true,
+			"MIMode": "gdb",
+			"setupCommands": [
+				 {
+					  "description": "Enable pretty-printing for gdb",
+					  "text": "-enable-pretty-printing",
+					  "ignoreFailures": true
+				 }
+			]
+		},
 		{ 
 			"name": "(gdb) Attach -TUI restart",
 			"type": "cppdbg",

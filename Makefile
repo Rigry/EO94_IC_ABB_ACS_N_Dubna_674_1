@@ -19,6 +19,7 @@ BUILD_DIR = build
 # source
 ######################################
 LIBRARY_PATH = /home/alexandr/code/mculibv2-master
+BOOST_ROOT = /home/alexandr/code/boost_1_68_0
 
 CPP_SOURCES_F0 = src/main.cpp
 
@@ -27,6 +28,8 @@ ASM_SOURCES_F0 = $(LIBRARY_PATH)/STM32F0_files/startup_stm32f030x6.s
 # C includes
 C_INCLUDES =  
 C_INCLUDES += -Isrc
+C_INCLUDES += -I$(BOOST_ROOT)
+C_INCLUDES += -I$(BOOST_ROOT)\stage\lib64
 C_INCLUDES += -I$(LIBRARY_PATH)
 C_INCLUDES += -I$(LIBRARY_PATH)/hal
 C_INCLUDES += -I$(LIBRARY_PATH)/hal/ral
@@ -140,7 +143,10 @@ util:
 	#/home/slonegd/Code/stlink/build/Release/src/gdbserver/st-util
 	#/home/peltikhin/code/EmbeddedArm/stlink/build/Release/src/gdbserver/st-util
 	st-util
-  
+ 
+test_:
+	$(MAKE) -C ./test/
+
 #######################################
 # dependencies
 #######################################

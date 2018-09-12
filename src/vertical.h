@@ -2,6 +2,7 @@
 
 #include "pin.h"
 #include "timers.h"
+#include <stdint.h>
 
 /// Class Vertical служит для задания направления движения каретки с помощью методов up и down. 
 /// Время паузы между сменой направления, time, задается конструктором.
@@ -13,10 +14,10 @@ class Vertical : Subscriber
    bool subscribe {false};
    void wake();
    void sleep();
-   std::size_t time_count {0};
-   const std::size_t time_pause;
+   uint16_t time_count {0};
 public:
-   Vertical (std::size_t time_pause);
+   uint16_t time_pause;
+   Vertical (uint16_t time_pause);
    void stop();
    void up();
    void down();
@@ -24,19 +25,12 @@ public:
    bool isDown();
 };
 
-
-
-
 template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::Vertical (std::size_t time_pause)
+Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::Vertical (uint16_t time_pause)
    : time_pause{time_pause}
 {
-   SenseUp    ::clockEnable();
-   SenseDown  ::clockEnable();
-   ContrlUp   ::clockEnable();
-   ContrlDown ::clockEnable();
-   ContrlUp   ::setAsOut();
-   ContrlDown ::setAsOut();
+   ContrlUp   ::template configure<PinConf_t::Output>();
+   ContrlDown ::template configure<PinConf_t::Output>();
 }
 
 template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>

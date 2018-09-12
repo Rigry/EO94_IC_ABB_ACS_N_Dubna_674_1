@@ -5,6 +5,8 @@
 #include "flash.h"
 #include "literals.h"
 #include "modbusSlave.h"
+#include <algorithm>
+#include <iterator>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,17 +20,21 @@ const size_t bufSize = 255;
 using USART_ = USART<USART1, bufSize, RXpin, TXpin, RTSpin, LEDpin>;
 USART_ uart;
 
-enum Mode {Auto = 0b0, Manual};
-
-struct State {
-   bool stop_Start :1; // Bit 0 Stop_Start: prohibit (0), allow (1) a job;
-   bool stop_Slow  :1; // Bit 1 Stop_Slow: instant stop (0), deceleretion (1);
-   bool speed      :1; // Bit 2 Speed: slow (0), fast (1);
-   bool forth_Back :1; // Bit 3 Forth_Back: forth (0), back (1);
-   bool up         :1; // Bit 4 Up: move up (1)
-   bool down       :1; // Bit 5 Down: move down (1)
-   Mode mode       :2; // Bit 6 Mode: auto mode (0), manual mode (1);
-   uint16_t res    :9; // Bits 15:7 res: Reserved, must be kept cleared
+struct Operation {
+   enum Mode     {auto_mode = 0b0, manual_mode};
+   enum Braking  {slow_stop = 0b0, fast_stop};
+   enum Speed    {slow = 0b0, fast};
+   enum Direct_h {right = 0b0, left};
+   enum Direct_v {down = 0b0, up};
+   bool enable      :1; // Bit 0 Start: prohibit (0), allow (1) a job;
+   bool stop_h      :1; // Bit 1 Stop_h: stop horizontal movement (1);
+   bool stop_v      :1; // Bit 2 Stop_v: stop vertical movement (1);
+   Braking braking  :1; // Bit 3 Braking: fast_stop (0), slow_stop (1);
+   Speed speed      :1; // Bit 4 Speed: slow (0), fast (1);
+   Direct_h direct_h:1; // Bit 5 Direct_h: right (0), left (1);
+   Direct_v direct_v:1; // Bit 6 Direct_v: down (0), up (1)
+   Mode mode        :1; // Bit 7 Mode: auto mode (0), manual mode (1);
+   uint16_t res     :8; // Bits 15:8 res: Reserved, must be kept cleared
 };
 struct Sensors {
    bool right     :1;  // Bit 0 Right: Right Emergency Sensor
@@ -62,14 +68,16 @@ struct Zone {
 //};
 struct InRegs {
    USART_::sSettings uartSet;
-   uint16_t modbusAddress;
-   uint16_t password;
-   uint16_t factoryNumber;
-   int16_t  coordinate;
-   int16_t  delta_coordinate;
-   State    state;
-   Zone     zone;
-   int16_t  zone_coordinate[16];
+   uint16_t  modbusAddress;
+   uint16_t  password;
+   uint16_t  factoryNumber;
+   int16_t   coordinate;
+   int16_t   origin;
+   uint16_t  brake;
+   int16_t   time_pause;
+   Operation operation;
+   Zone      zone;
+   int16_t   zone_coordinate[16];
 };
 struct OutRegs {
    uint16_t          deviceCode;
@@ -78,9 +86,8 @@ struct OutRegs {
    uint16_t          modbusAddress;
    int16_t           coordinate;
    Sensors           sensors;
-   
 };
-auto modbus = MBslave<InRegs, OutRegs, USART_> (uart);
+MBslave<InRegs, OutRegs, USART_> modbus {uart};
 
 
 
@@ -96,11 +103,13 @@ struct FlashData {
       .boudrate     = USART_::sBoudrate::_9600,
       .res          = 0
    };
-   uint8_t modbusAddress     = 1;
-   int16_t delta_coordinate = 100;
-   int16_t min_coordinate    = -16384;
-   int16_t max_coordinate    =  16384;
-   int16_t zone_coordinate[16] {-16384};//одним числом
+   uint8_t  modbusAddress      =  1;
+   uint16_t brake              =  100;
+   uint16_t time_pause         =  3000;
+   int16_t  origin             =  0;
+   int16_t  min_coordinate     = -16384;
+   int16_t  max_coordinate     =  16384;
+   int16_t  zone_coordinate[16] { -16384 };//одним числом
 };
 auto flash = Flash<FlashData, 20_page> ( FlashData{} );
 

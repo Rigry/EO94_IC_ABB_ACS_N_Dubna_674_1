@@ -1,19 +1,57 @@
-enum Calibration {Left_slow, Right_slow, Return, Complet} calibration {Calibration::Left_slow};
+#pragma once
 
-switch (calibration) {
-         case Left_slow://cохранить координату
-            if(SenseLeft::isSet())
-               calibration = Calibration::Right_slow;
+template <class Control, class SenseLeft, class SenseRight, class Origin>
+class Calibration
+{
+   enum State {wait, left, right, back} 
+      state {State::wait};
+public:
+   void operator()();
+};
+
+template <class Control, class SenseLeft, class SenseRight, class Origin>
+void Calibration<Control, SenseLeft, SenseRight, Origin>::operator()()
+{
+   switch (state) {
+         case wait:
+            if (SenseLeft::isSet()) {
+               Control::right();
+               Control::slow();
+               Control::slow_stop();
+               Control::start();
+               state = State::right;
+            } else if (SenseLeft::isClear()) {
+               Control::left ();
+               Control::slow ();
+               Control::slow_stop();
+               Control::start();
+               state = State::left;
+            }
          break;
-         case Right_slow://сохранить координату
-            if(SenseRight::isSet())
-               calibration = Calibration::Return;
+         case left:
+            if(SenseLeft::isSet()) {
+               Control::fast_stop();
+               Control::stop();
+               state = State::wait;
+            }
          break;
-         case Return:
-            if(Origin::isSet())
-               calibration = Calibration::Complet;
+         case right:
+            if(SenseRight::isSet()) {
+               Control::fast_stop();
+               Control::stop();
+               state = State::back;
+            }
          break;
-         case Complet:
-            global = Global::Automatic;
+         case back:
+            Control::left();
+            Control::fast ();
+            Control::slow_stop();
+            Control::start();
+            if(Origin::isSet()) {
+               Control::fast_stop();
+               Control::stop();
+               state = State::wait;
+            }
          break;
-      }
+   }
+}
