@@ -47,37 +47,37 @@ template<> bool Origin    ::set_ {false};
 
 struct Mock_control
 {
-   static enum class Speed  {slow  = 0b0, fast}  speed;
-   static enum class Side   {right = 0b0, left}  side;
-   static enum class Launch {stop  = 0b0, start} launch;
-   static enum class Finish {slow_stop = 0b0, fast_stop} finish;
-   static void init      () {}
-   static void fast      () {speed  = Speed ::fast; }
-   static void slow      () {speed  = Speed ::slow; }
-   static void right     () {side   = Side  ::right;}
-   static void left      () {side   = Side  ::left; }
-   static void start     () {launch = Launch::start;}
-   static void stop      () {launch = Launch::stop; }
-   static void fast_stop () {finish = Finish::fast_stop;}
-   static void slow_stop () {finish = Finish::slow_stop;}
-   static bool is_right  () {return side == Side::right;}
-   static bool is_left   () {return side == Side::left ;}
-};
+   enum class Speed  {slow  = 0b0, fast}  speed  = Speed ::slow;
+   enum class Side   {right = 0b0, left}  side   = Side  ::right;
+   enum class Launch {stop  = 0b0, start} launch = Launch::stop;;
+   enum class Finish {slow_stop = 0b0, fast_stop} finish = Finish::fast_stop;
+   void init      () {}
+   void fast      () {speed  = Speed ::fast; }
+   void slow      () {speed  = Speed ::slow; }
+   void right     () {side   = Side  ::right;}
+   void left      () {side   = Side  ::left; }
+   void start     () {launch = Launch::start;}
+   void stop_h    () {launch = Launch::stop; }
+   void fast_stop () {finish = Finish::fast_stop;}
+   void slow_stop () {finish = Finish::slow_stop;}
+   bool is_right  () {return side == Side::right;}
+   bool is_left   () {return side == Side::left ;}
+} control;
 
 using Speed  = Mock_control::Speed;
 using Side   = Mock_control::Side;
 using Launch = Mock_control::Launch;
 using Finish = Mock_control::Finish;
 
-Speed  Mock_control::speed {Speed ::slow };
-Side   Mock_control::side  {Side  ::right};
-Launch Mock_control::launch{Launch::stop };
-Finish Mock_control::finish{Finish::fast_stop};
+// Speed  Mock_control::speed {Speed ::slow };
+// Side   Mock_control::side  {Side  ::right};
+// Launch Mock_control::launch{Launch::stop };
+// Finish Mock_control::finish{Finish::fast_stop};
 
-auto& speed  = Mock_control::speed;
-auto& side   = Mock_control::side;
-auto& launch = Mock_control::launch;
-auto& finish = Mock_control::finish;
+auto& speed  = control.speed;
+auto& side   = control.side;
+auto& launch = control.launch;
+auto& finish = control.finish;
 
 const Speed  fast      {Speed ::fast };
 const Speed  slow      {Speed ::slow };
@@ -92,13 +92,17 @@ int main()
 {
    int error = 0; 
    int16_t encoder;
-   Calibration <Mock_control, SenseLeft, SenseRight, Origin> calibration;
+   Calibration <Mock_control, SenseLeft, SenseRight> calibration {control};
 
+//    bool start()
+//    {
    calibration();
+//    retrurn (side == left and spped == slow and launch == start and finish == slow_stop)
    if (side != left or speed != slow or launch != start or finish != slow_stop) {
          std::cout << "\033[31mError 1\033[0m" << std::endl;
          ++error;
    }
+//    }
    calibration();
    if (launch != start or finish != slow_stop) {
          std::cout << "\033[31mError 2\033[0m" << std::endl;
@@ -125,12 +129,6 @@ int main()
    calibration();
    if (launch != stop or finish != fast_stop) {
          std::cout << "\033[31mError 6\033[0m" << std::endl;
-         ++error;
-   }
-   SenseRight::clear();
-   calibration();
-   if (side != left or speed != fast or launch != start or finish != slow_stop) {
-         std::cout << "\033[31mError 7\033[0m" << std::endl;
          ++error;
    }
 

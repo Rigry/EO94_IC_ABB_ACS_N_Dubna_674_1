@@ -43,7 +43,20 @@
     "ostream": "cpp",
     "numeric": "cpp",
     "stdexcept": "cpp",
-    "streambuf": "cpp"
+    "streambuf": "cpp",
+    "csignal": "cpp",
+    "ctime": "cpp",
+    "codecvt": "cpp",
+    "complex": "cpp",
+    "deque": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "fstream": "cpp",
+    "future": "cpp",
+    "memory": "cpp",
+    "mutex": "cpp",
+    "sstream": "cpp",
+    "thread": "cpp"
 },
 	// Compiler options for C (e.g. ["-std=c99"])
 	"clang.cflags": [

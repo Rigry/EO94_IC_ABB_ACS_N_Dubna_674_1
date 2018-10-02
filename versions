@@ -1,3 +1,6 @@
+v0.05 automatic, automatic_t, class Horizontal теперь с прерываниями,
+      main переписан на encoder.
+
 v0.04 файлы horizontal.h, search.h, calibration.h, тесты test_horizontal, test_search. test_calibration готовы
       добавлены входные/выходные регистры модбаса и реакции на них
       идет работа над automatic.h

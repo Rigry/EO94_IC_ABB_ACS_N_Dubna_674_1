@@ -1,4 +1,4 @@
-LIBRARY_PATH = /home/alexandr/code/mculibv2-master
+LIBRARY_PATH = /home/alexandr/code/mculib2
 
 C_INCLUDES_ =  
 C_INCLUDES_ += -I../src
@@ -9,7 +9,7 @@ C_INCLUDES_ += -I$(LIBRARY_PATH)/hal/ral
 C_INCLUDES_ += -I$(LIBRARY_PATH)/STM32F0_files
 C_INCLUDES_ += -I$(LIBRARY_PATH)/STM32F0_files/CMSIS 
 
-CPP_FLAGS = -std=c++17 $(C_INCLUDES_) -DTEST -g  -Wno-register
+CPP_FLAGS = -std=c++17 $(C_INCLUDES_) -DTEST -g  -Wno-register -O0
 BUILD_DIR = build
 
 all: $(BUILD_DIR)

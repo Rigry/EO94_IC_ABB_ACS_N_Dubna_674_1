@@ -6,7 +6,7 @@
 
 /// Class Vertical служит для задания направления движения каретки с помощью методов up и down. 
 /// Время паузы между сменой направления, time, задается конструктором.
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown> 
+template <class Control, class Sense_up, class Sense_down> 
 class Vertical : Subscriber 
 {
    volatile enum State {Wait, Up, Down, Pause_Wait, Pause_Up, Pause_Down} state {State::Wait};
@@ -15,9 +15,10 @@ class Vertical : Subscriber
    void wake();
    void sleep();
    uint16_t time_count {0};
+   Control &control;
 public:
    uint16_t time_pause;
-   Vertical (uint16_t time_pause);
+   Vertical (Control &control, uint16_t time_pause);
    void stop();
    void up();
    void down();
@@ -25,31 +26,28 @@ public:
    bool isDown();
 };
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::Vertical (uint16_t time_pause)
-   : time_pause{time_pause}
-{
-   ContrlUp   ::template configure<PinConf_t::Output>();
-   ContrlDown ::template configure<PinConf_t::Output>();
-}
+template <class Control, class Sense_up, class Sense_down>
+Vertical<Control, Sense_up, Sense_down>::Vertical (Control &control, uint16_t time_pause)
+   : control   {control}
+   , time_pause{time_pause}
+{}
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::stop ()
+template <class Control, class Sense_up, class Sense_down>
+void Vertical<Control, Sense_up, Sense_down>::stop ()
 {
-   ContrlUp  ::clear();
-   ContrlDown::clear();
+   control.stop_v();
    state = State::Pause_Wait;
 } 
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::up ()
+template <class Control, class Sense_up, class Sense_down>
+void Vertical<Control, Sense_up, Sense_down>::up ()
 {
-   if ((not SenseUp::isSet()) and state == State::Wait) {
-      ContrlUp::set();
+   if ((not Sense_up::isSet()) and state == State::Wait) {
+      control.up();
       state = State::Up;
       wake();
    } else if (state == State::Down) {
-         ContrlDown::clear();
+         control.stop_v();
          state = State::Pause_Up;
    } else if (state == State::Pause_Up or state == State::Pause_Down) {
          state = State::Pause_Up;
@@ -59,15 +57,15 @@ void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::up ()
 
 }
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::down ()
+template <class Control, class Sense_up, class Sense_down>
+void Vertical<Control, Sense_up, Sense_down>::down ()
 {
-   if ((not SenseDown::isSet()) and state == State::Wait) {
-      ContrlDown::set();
+   if ((not Sense_down::isSet()) and state == State::Wait) {
+      control.down();
       state = State::Down;
       wake();
    } else if (state == State::Up) {
-         ContrlUp::clear();
+         control.stop_v();
          state = State::Pause_Down;
    } else if (state == State::Pause_Up or state == State::Pause_Down) {
          state = State::Pause_Down;
@@ -77,8 +75,8 @@ void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::down ()
 
 }
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::wake ()
+template <class Control, class Sense_up, class Sense_down>
+void Vertical<Control, Sense_up, Sense_down>::wake ()
 {
    if (not subscribe) {
       tickUpdater.subscribe(this);
@@ -86,8 +84,8 @@ void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::wake ()
    }
 }
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::sleep ()
+template <class Control, class Sense_up, class Sense_down>
+void Vertical<Control, Sense_up, Sense_down>::sleep ()
 {
    if (subscribe) {
       tickUpdater.unsubscribe(this);
@@ -95,48 +93,48 @@ void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::sleep ()
    }
 }
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-bool Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::isUp ()
+template <class Control, class Sense_up, class Sense_down>
+bool Vertical<Control, Sense_up, Sense_down>::isUp ()
 {
-   return SenseUp::isSet();
+   return Sense_up::isSet();
 }
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-bool Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::isDown ()
+template <class Control, class Sense_up, class Sense_down>
+bool Vertical<Control, Sense_up, Sense_down>::isDown ()
 {
-   return SenseDown::isSet();
+   return Sense_down::isSet();
 }
 
-template <class SenseUp, class ContrlUp, class SenseDown, class ContrlDown>
-void Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>::notify()
+template <class Control, class Sense_up, class Sense_down>
+void Vertical<Control, Sense_up, Sense_down>::notify()
 {
    switch (state) {
       case Wait:
          sleep();
       break;
       case Up:
-         if (SenseUp::isSet()) {
-            ContrlUp::clear();
+         if (Sense_up::isSet()) {
+            control.stop_v();
             state = State::Pause_Wait;
          }
       break;
       case Down:
-         if (SenseDown::isSet()) {
-            ContrlDown::clear();
+         if (Sense_down::isSet()) {
+            control.stop_v();
             state = State::Pause_Wait;
          }
       break;
       case Pause_Up:
          if (++time_count >= time_pause) {
             state = State::Up;
-            ContrlUp::set();
+            control.up();
             time_count = 0;
          }
       break;
       case Pause_Down:
          if (++time_count >= time_pause) {
             state = State::Down;
-            ContrlDown::set();
+            control.down();
             time_count = 0;
          }
       break;

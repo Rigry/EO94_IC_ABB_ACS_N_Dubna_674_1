@@ -1,51 +1,74 @@
+// #define STM32F030x6
+
+// #include "stm32f0xx.h"
 // #include <iostream>
 #include "init.h"
-#include "vertical.h"
-#include "horizontal.h"
 #include "ring_buffer.h"
 #include "pin.h"
-// #include "global.h"
 #include "search.h"
 #include "automatic.h"
 #include "calibration.h"
-// #include "manual.h"
+#include "vertical.h"
+#include "horizontal.h"
+#include "manual.h"
 #include "control.h"
+#include "encoder_.h"
 #include <boost/preprocessor/iteration/local.hpp>
-// #define BOOTS_PP_LOCAL_MACRO(n) 
-// ADR(zone_coordinate + n):flash.zone_coordinate[n] = modbus.inRegs.zone_coordinate[n];
-// #define BOOTS_ (0,15)
 
 /// реакция на изменение входных регистров модбаса
 void reaction (uint16_t registrAddress);
 
-
-
 // для отладки
 // RingBuffer<30> ring;
-using SenseUp    = PB2;
-using SenseDown  = PB4;
-using SenseRight = PA10;
-using SenseLeft  = PA11;
-using Origin     = PA12;
-using Tilt       = PA14;
-using ContrlUp   = PB3;
-using ContrlDown = PB5;
-using Speed      = PA13;
-using Launch     = PA15;
-using Side       = PB0;
-using Finish     = PB1;
 
+using DI1  = PA9 ;
+using DI2  = PA8 ;
+using DI3  = PB15;
+using DI4  = PB14;
+using DI5  = PB13;
+using DI6  = PB12;
+using DI7  = PB11;
+using DI8  = PB10;
+using DI9  = PB2 ;
+using DI10 = PB1 ;
+using DO1  = PB0 ;
+using DO2  = PA7 ;
+using DO3  = PA6 ;
+using DO4  = PA5 ;
+using DO5  = PB5 ;
+using DO6  = PB4 ;
+using DO7  = PB3 ;
+using DO8  = PA15;
 
-int16_t min_coordinate;
-int16_t max_coordinate;
+using Sense_up    = DI3;
+using Sense_down  = DI4;
+using Sense_right = DI5;
+using Sense_left  = DI6;
+using Origin      = DI7;
+using Tilt        = DI8;
+using Up          = DO7;
+using Down        = DO8;
+using Speed       = DO1;
+using Launch      = DO2;
+using Side        = DO3;
+using Finish      = DO4;
+
+// int16_t min_coordinate;
+// int16_t max_coordinate;
 // int16_t origin;
-int16_t encoder;
+// int16_t encoder;
 
 int main(void)
 {
-   using Control = Control <Speed, Launch, Side, Finish>;
+   using Encoder    = Encoder   <TIM1, DI2, DI1, false>;
+   using Control    = Control   <Speed, Launch, Side, Finish, Up, Down>;
+   using Horizontal = Horizontal<Control, Encoder>;
+   using Vertical   = Vertical  <Control, Sense_up, Sense_down>;
+   
+
    makeDebugVar();
-   Control::init();
+   Control control {modbus.outRegs.states};
+   control.init();
 
    #define ADR(reg) GET_ADR(InRegs, reg)
 
@@ -53,67 +76,109 @@ int main(void)
    modbus.outRegs.factoryNumber     = flash.factoryNumber;
    modbus.outRegs.uartSet           = flash.uartSet;
    modbus.outRegs.modbusAddress     = modbus.address = flash.modbusAddress;
+   modbus.outRegs.min_coordinate    = flash.min_coordinate;
+   modbus.outRegs.max_coordinate    = flash.max_coordinate;
    modbus.arInRegsMax[ADR(uartSet)] = 0b111111;
    modbus.inRegsMin.modbusAddress   = 1;
    modbus.inRegsMax.modbusAddress   = 255;
+   modbus.inRegsMin.coordinate      = flash.min_coordinate;
+   modbus.inRegsMax.coordinate      = flash.max_coordinate;
+   modbus.inRegsMax.brake           = 12000;
 
    modbus.init (flash.uartSet);
-   using Horizontal = Horizontal<Control, int16_t>;
-   using Vertical   = Vertical<SenseUp, ContrlUp, SenseDown, ContrlDown>;
-   Horizontal horizontal {encoder, flash.brake};
-   Vertical vertical {flash.time_pause};
-   Automatic <Horizontal, Vertical, int16_t, Control> automatic {flash.zone_coordinate, horizontal, vertical, encoder};
-   Calibration <Control, SenseLeft, SenseRight, Origin> calibration;
-   Search <Control, SenseLeft, SenseRight, Origin> search;
+
+   Encoder encoder;
+   Horizontal horizontal {control, encoder, flash.brake};
+   Vertical vertical {control, flash.time_pause};
+//    Encoder encoder;
+   Automatic   <Horizontal, Vertical, Encoder> automatic {horizontal, vertical, encoder};
+   Calibration <Control, Sense_up, Sense_left, Sense_right, Encoder> calibration {control, encoder, flash.min_coordinate, flash.max_coordinate};
+   Search      <Control, Sense_up, Sense_left, Sense_right, Origin, Encoder> search {control, encoder};
+   Manual      <Control, Sense_up, Sense_down, Sense_left, Sense_right> manual {control};
    
-   enum State {Search, Automatic, Calibration, Manual, Emergency} state {State::Search};
+   enum State {Wait, Search, Automatic, Calibration, Manual, Emergency} state {State::Wait};
+   bool lost_coordinate {false};
 
    while (1)
    {
-      
-      // switch (state) { //automatic and manual are called from modbus
-      //    case Search:
-      //       search();
-      //       if (origin::isSet()) {
-      //          encoder = flash.origin;
-      //          state = State::Automatic;
-      //       } else if ((SenseRight::isSet() or Tilt::isSet()) {
-      //          state = State::Emergency;
-      //       }
-      //    break;
-      //    case Automatic:
-      //       if (SenseLeft::isSet() or SenseRight::isSet() or Tilt::isSet())
-      //          state = State::Emergency;
-      //       else if (true /*coordinate lost*/)
-      //          state = State::Search;
-      //       else if (true /*калибровка*/)
-      //          state = State::Calibration;
-      //    break;
-      //    case Calibration:
-      //       calibration();
-      //       if (SenseLeft::isSet())
-      //          flash.min_coordinate = encoder;
-      //       if (SenseRight::isSet())
-      //          flash.max_coordinate = encoder;
-      //       if (Origin::isSet()) {
-      //          state = State::Automatic;
-      //       } else if (Tilt::isSet())
-      //          state = State::Emergency;
-      //    break;
-      //    case Emergency:
-      //       horizontal.main_stop();
-      //       vertical.main_stop();
-      //    break;
-      // }
-      automatic();
-      search();
-      calibration();
-      modbus.outRegs.sensors.up     = SenseUp   ::isSet();
-      modbus.outRegs.sensors.down   = SenseDown ::isSet();
-      modbus.outRegs.sensors.right  = SenseRight::isSet();
-      modbus.outRegs.sensors.left   = SenseLeft ::isSet();
-      modbus.outRegs.sensors.origin = Origin    ::isSet();
-      modbus.outRegs.sensors.tilt   = Tilt      ::isSet();
+      switch (state) {
+         case Wait:
+         // wait enable from modbus
+         break;
+         case Search:
+            if (Sense_up::isClear()) {
+               search.stop();
+               state = State::Emergency;
+               modbus.outRegs.states.mode = States::Mode::emergensy;
+            } else if (Sense_up::isSet()) {
+               search();
+               if (search.is_done()) {
+                  lost_coordinate = false;
+                  search.reset();
+                  state = State::Automatic;
+                  modbus.outRegs.states.mode = States::Mode::auto_mode;
+               } else if (search.not_found()) {
+                  search.stop();
+                  state = State::Emergency;
+                  modbus.outRegs.states.mode = States::Mode::emergensy;
+               } else if (Tilt::isSet()) {
+                  lost_coordinate = true;
+                  search.stop();
+                  state = State::Emergency;
+                  modbus.outRegs.states.mode = States::Mode::emergensy;
+               }
+            }
+         break;
+         case Automatic:
+            if (lost_coordinate)
+               state = State::Search;
+            else if (Tilt::isSet()) {
+               lost_coordinate = true;
+               automatic.stop();
+               state = State::Emergency;
+               modbus.outRegs.states.mode = States::Mode::emergensy;
+            } else if (Sense_left::isSet() and encoder != flash.min_coordinate) {
+               automatic.stop();
+               encoder = flash.min_coordinate;
+            } else if (Sense_right::isSet() and encoder != flash.max_coordinate) {
+               automatic.stop();
+               encoder = flash.max_coordinate;
+            } else 
+            automatic();
+         break;
+         case Calibration:
+            if (Sense_up::isClear()) {
+               calibration.stop();
+               state = State::Emergency;
+               modbus.outRegs.states.mode = States::Mode::emergensy;
+            } else if (Sense_up::isSet() and Origin::isSet()) {
+               calibration();
+               if (calibration.done()) {
+                  modbus.outRegs.min_coordinate = flash.min_coordinate;
+                  modbus.outRegs.max_coordinate = flash.max_coordinate;
+                  calibration.reset();
+                  state = State::Automatic;
+                  modbus.outRegs.states.mode = States::Mode::auto_mode;
+               } else if (Tilt::isSet()) {
+                  lost_coordinate = true;
+                  calibration.stop();
+                  state = State::Emergency;
+                  modbus.outRegs.states.mode = States::Mode::emergensy;
+               }
+            }
+         break;
+         case Emergency:
+         break;
+         case Manual:
+         break;
+      }
+
+      modbus.outRegs.sensors.sense_up    = Sense_up   ::isSet();
+      modbus.outRegs.sensors.sense_down  = Sense_down ::isSet();
+      modbus.outRegs.sensors.sense_right = Sense_right::isSet();
+      modbus.outRegs.sensors.sense_left  = Sense_left ::isSet();
+      modbus.outRegs.sensors.origin      = Origin     ::isSet();
+      modbus.outRegs.sensors.tilt        = Tilt       ::isSet();
 
       modbus ([&](uint16_t registrAddress) {
          static bool unblock = false;
@@ -146,12 +211,12 @@ int main(void)
                break;
 
             case ADR (coordinate):
-               horizontal.move(modbus.inRegs.coordinate);
+                  automatic.move(modbus.inRegs.coordinate);
                break;
 
-            case ADR (origin):
-               flash.origin = modbus.inRegs.origin;
-               break;
+            // case ADR (origin):
+               // flash.origin = modbus.inRegs.origin;
+               // break;
 
             case ADR (brake):
                flash.brake
@@ -166,48 +231,97 @@ int main(void)
                break;
 
             case ADR (operation):
-               if (modbus.inRegs.operation.enable) {
-                  Control::start();
-               } else if (not modbus.inRegs.operation.enable) {
-                  Control::stop();
+               if (modbus.inRegs.operation.enable)
+                  state = State::Search;
+               if (state == State::Search) {
+                  if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
+                     search.reset();
+                     modbus.outRegs.states.mode = States::Mode::manual_mode;
+                     state = State::Manual;
+                  }
                }
-               if (modbus.inRegs.operation.stop_h) {
-                  horizontal.stop();
+               if (state == State::Automatic) {
+                  if (modbus.inRegs.operation.stop_h or modbus.inRegs.operation.stop_v) {
+                     automatic.reset();
+                  }
+                  if (modbus.inRegs.operation.direct_v == Operation::Direct_v::up) {
+                     automatic.move();
+                  } else if (modbus.inRegs.operation.direct_v == Operation::Direct_v::down) {
+                     automatic.move();
+                  }
+                  if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
+                     automatic.reset();
+                     modbus.outRegs.states.mode = States::Mode::manual_mode;
+                     state = State::Manual;
+                  } else if (modbus.inRegs.operation.mode == Operation::Mode::calibration) {
+                     automatic.reset();
+                     modbus.outRegs.states.mode = States::Mode::calibration;
+                     state = State::Calibration;
+                  }
                }
-               if (modbus.inRegs.operation.stop_v) {
-                  vertical.stop();
+               if (state == State::Manual) {
+                  if (modbus.inRegs.operation.stop_h) {
+                     manual.stop_h();
+                  }
+                  if (modbus.inRegs.operation.stop_v) {
+                     manual.stop_v();
+                  }
+                  if (modbus.inRegs.operation.direct_v == Operation::Direct_v::up) {
+                     manual.up();
+                  } else if (modbus.inRegs.operation.direct_v == Operation::Direct_v::down) {
+                     manual.down();
+                  }
+                  if (modbus.inRegs.operation.braking == Operation::Braking::slow_stop) {
+                     manual.slow_stop();
+                  } else if (modbus.inRegs.operation.braking == Operation::Braking::fast_stop) {
+                     manual.fast_stop();
+                  }
+                  if (modbus.inRegs.operation.speed == Operation::Speed::slow) {
+                     manual.slow();
+                  } else if (modbus.inRegs.operation.speed == Operation::Speed::fast) {
+                     manual.fast();
+                  }
+                  if (modbus.inRegs.operation.direct_h == Operation::Direct_h::right) {
+                     manual.right();
+                  } else if (modbus.inRegs.operation.direct_h == Operation::Direct_h::left) {
+                     manual.left();
+                  }
+                  if (modbus.inRegs.operation.mode == Operation::Mode::auto_mode and Tilt::isClear()) {
+                     manual.reset();
+                     modbus.outRegs.states.mode = States::Mode::auto_mode;
+                     state = State::Automatic;
+                  }
+               if (state == State::Emergency)
+                  if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
+                     modbus.outRegs.states.mode = States::Mode::manual_mode;
+                     state = State::Manual;
+                  }
                }
-               if (modbus.inRegs.operation.braking == Operation::Braking::slow_stop) {
-                  Control::slow_stop();
-               } else if (modbus.inRegs.operation.braking == Operation::Braking::fast_stop) {
-                  Control::fast_stop();
-               }
-               if (modbus.inRegs.operation.speed == Operation::Speed::slow) {
-                  Control::slow();
-               } else if (modbus.inRegs.operation.speed == Operation::Speed::fast) {
-                  Control::fast();
-               }
-               if (modbus.inRegs.operation.direct_h == Operation::Direct_h::right) {
-                  Control::right();
-               } else if (modbus.inRegs.operation.direct_h == Operation::Direct_h::left) {
-                  Control::left();
-               }
-                if (modbus.inRegs.operation.direct_v == Operation::Direct_v::up) {
-                  vertical.up();
-               } else if (modbus.inRegs.operation.direct_v == Operation::Direct_v::down) {
-                  vertical.down();
-               }
-               if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
-                  state = State::Manual;
-               }
-               else if (modbus.inRegs.operation.mode == Operation::Mode::auto_mode) {
-                  state = State::Automatic;
-               }
-               break;
-            #define BOOST_PP_LOCAL_MACRO(n) case ADR(zone_coordinate)+n:\
-            flash.zone_coordinate[n] = modbus.inRegs.zone_coordinate[n];break;
-            #define BOOST_PP_LOCAL_LIMITS (1, 15)
-            #include BOOST_PP_LOCAL_ITERATE()
+            break;
+
+            // case ADR(zone):
+            //    automatic.zone[0]  = modbus.inRegs.zone._0 ;
+            //    automatic.zone[1]  = modbus.inRegs.zone._1 ;
+            //    automatic.zone[2]  = modbus.inRegs.zone._2 ;
+            //    automatic.zone[3]  = modbus.inRegs.zone._3 ;
+            //    automatic.zone[4]  = modbus.inRegs.zone._4 ;
+            //    automatic.zone[5]  = modbus.inRegs.zone._5 ;
+            //    automatic.zone[6]  = modbus.inRegs.zone._6 ;
+            //    automatic.zone[7]  = modbus.inRegs.zone._7 ;
+            //    automatic.zone[8]  = modbus.inRegs.zone._8 ;
+            //    automatic.zone[9]  = modbus.inRegs.zone._9;
+            //    automatic.zone[10] = modbus.inRegs.zone._10;
+            //    automatic.zone[11] = modbus.inRegs.zone._11;
+            //    automatic.zone[12] = modbus.inRegs.zone._12;
+            //    automatic.zone[13] = modbus.inRegs.zone._13;
+            //    automatic.zone[14] = modbus.inRegs.zone._14;
+            //    automatic.zone[15] = modbus.inRegs.zone._15;
+            // break;
+     
+            // #define BOOST_PP_LOCAL_MACRO(n) case ADR(zone_coordinate)+n:
+            // flash.zone_coordinate[n] = modbus.inRegs.zone_coordinate[n];break;
+            // #define BOOST_PP_LOCAL_LIMITS (1, 15)
+            // #include BOOST_PP_LOCAL_ITERATE()
             
             default: break;
          }
@@ -226,3 +340,4 @@ void reaction (uint16_t registrAddress)
 {
 
 }
+

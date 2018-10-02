@@ -30,20 +30,26 @@ struct MockPin
    static bool isClear()      {return not set_;}
 };
 
-// template<> bool MockPin<1>::set_ {false};
-// template<> bool MockPin<2>::set_ {false};
-// template<> bool MockPin<3>::set_ {false};
-// template<> bool MockPin<4>::set_ {false};
+struct Mock_control
+{
+   bool Up {false};
+   bool Down {false};
+   void init() {}
+   void up     () {Up   = true;}
+   void down   () {Down = true;}
+   void stop_v () {Up   = false;
+                   Down = false;}
+   
+} control;
 
-using SenseUp   = MockPin<1>;
-using SenseDown = MockPin<2>;
-using Up        = MockPin<3>;
-using Down      = MockPin<4>;
+using Sense_up   = MockPin<1>;
+using Sense_down = MockPin<2>;
 
-template<> bool SenseUp  ::set_ {false};
-template<> bool SenseDown::set_ {false}; 
-template<> bool Up       ::set_ {false};
-template<> bool Down     ::set_ {false};
+template<> bool Sense_up  ::set_ {false};
+template<> bool Sense_down::set_ {false}; 
+
+auto& Up   = control.Up;
+auto& Down = control.Down;
 
 int main ()
 {
@@ -51,26 +57,26 @@ int main ()
    const auto pause {3000};
    volatile auto time_count {0};
    int error = 0; 
-   Vertical<SenseUp, Up, SenseDown, Down> vertical {5000};
-   if (Up::set_ or Down::set_) {
+   Vertical<Mock_control, Sense_up, Sense_down> vertical {control, 5000};
+   if (Up or Down) {
       std::cout << "Ошибка конструктора" << std::endl;
       ++error;
    }
    
    vertical.up();
-   if (not Up::set_) {
+   if (not Up) {
       std::cout << "Error test 2 " << std::endl;
       ++error;
    }
    
-   SenseUp::set_ = true;
-   if (not Up::set_) {
+   Sense_up::set_ = true;
+   if (not Up) {
       std::cout << "Error test 3 " << std::endl;
       ++error;
    }
    
    tickUpdater.notify();
-   if (Up::set_) {
+   if (Up) {
       std::cout << "Error test 4 " << std::endl;
       ++error;
    }
@@ -81,20 +87,20 @@ int main ()
    // After pause
    
    vertical.down();
-   if (not Down::set_) {
+   if (not Down) {
       std::cout << "Error test 5 " << std::endl;
       ++error;
    }
    
-   SenseUp  ::set_ = false;
-   SenseDown::set_ = true;
-   if (not Down::set_) {
+   Sense_up  ::set_ = false;
+   Sense_down::set_ = true;
+   if (not Down) {
       std::cout << "Error test 6 " << std::endl;
       ++error;
    }
    
    tickUpdater.notify();
-   if (Down::set_) {
+   if (Down) {
       std::cout << "Error test 7 " << std::endl;
       ++error;
    }
@@ -105,22 +111,22 @@ int main ()
    // after pause
 
    vertical.up();
-   if (not Up::set_) {
+   if (not Up) {
       std::cout << "Error test 8" << std::endl;
       ++error;
    }
 
-   SenseUp  ::set_ = false;
-   SenseDown::set_ = false;
+   Sense_up  ::set_ = false;
+   Sense_down::set_ = false;
 
    vertical.down();
-   if (Up::set_){
+   if (Up){
       std::cout << "Error 9" << std::endl;
       ++error;
    }
 
    // without pause
-   if (Down::set_) {
+   if (Down) {
       std::cout << "Error 10" << std::endl;
       ++error;
    }
@@ -130,19 +136,19 @@ int main ()
    time_count = 0;
    // after pause
 
-    if (not Down::set_) {
+    if (not Down) {
       std::cout << "Error 11" << std::endl;
       ++error;
    }
 
    vertical.up();
-   if (Down::set_) {
+   if (Down) {
       std::cout << "Error 12" << std::endl;
       ++error;
    }
 
    // without pause
-   if (Up::set_) {
+   if (Up) {
       std::cout << "Error 13" << std::endl;
       ++error;
    }
@@ -158,11 +164,11 @@ int main ()
    time_count = 0;
       // after pause
 
-   if (Up::set_) {
+   if (Up) {
       std::cout << "Error 14" << std::endl;
       ++error;
    }
-   if (not Down::set_) {
+   if (not Down) {
       std::cout << "Error 15" << std::endl;
       ++error;
    }
@@ -180,20 +186,20 @@ int main ()
    time_count = 0;
       // after pause
 
-   if (Down::set_) {
+   if (Down) {
       std::cout << "Error 16" << std::endl;
       ++error;
    }
-   if (not Up::set_) {
+   if (not Up) {
       std::cout << "Error 17" << std::endl;
       ++error;
    }
 
-   SenseUp  ::set_ = true;
-   SenseDown::set_ = false;
+   Sense_up  ::set_ = true;
+   Sense_down::set_ = false;
    vertical.stop();
    // without pause
-   if (Up::set_ or Down::set_) {
+   if (Up or Down) {
       std::cout << "Error 18" << std::endl;
       ++error;
    }
@@ -202,31 +208,31 @@ int main ()
       tickUpdater.notify();
    time_count = 0;
    // After pause
-   if (Up::set_ or Down::set_) {
+   if (Up or Down) {
       std::cout << "Error 19" << std::endl;
       ++error;
    }
 
    vertical.down();
-   SenseUp  ::set_ = false;
-   SenseDown::set_ = true;
+   Sense_up  ::set_ = false;
+   Sense_down::set_ = true;
       
    while (++time_count <= time_pause)
       tickUpdater.notify();
    time_count = 0;
    // After pause
    vertical.stop();
-   if (Up::set_ or Down::set_) {
+   if (Up or Down) {
       std::cout << "Error 20" << std::endl;
       ++error;
    }
    
    vertical.up();
-   SenseUp  ::set_ = false;
-   SenseDown::set_ = false;
+   Sense_up  ::set_ = false;
+   Sense_down::set_ = false;
    vertical.down();
    vertical.stop();
-   if (Up::set_ or Down::set_) {
+   if (Up or Down) {
       std::cout << "Error 21" << std::endl;
       ++error;
    }
@@ -238,7 +244,7 @@ int main ()
    time_count = 0;
    // After pause
    vertical.stop();
-   if (Up::set_ or Down::set_) {
+   if (Up or Down) {
       std::cout << "Error 22" << std::endl;
       ++error;
    }
@@ -250,7 +256,7 @@ int main ()
    tickUpdater.notify();
    // while is pause
    vertical.stop();
-   if (Up::set_ or Down::set_) {
+   if (Up or Down) {
       std::cout << "Error 23" << std::endl;
       ++error;
    }
