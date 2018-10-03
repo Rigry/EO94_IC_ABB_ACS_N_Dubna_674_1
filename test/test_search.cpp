@@ -36,13 +36,13 @@ struct MockPin
 // template<> bool MockPin<3>::set_ {false};
 // template<> bool MockPin<4>::set_ {false};
 
-using SenseRight = MockPin<1>;
-using SenseLeft  = MockPin<2>;
-using Origin     = MockPin<3>;
+using Sense_right = MockPin<1>;
+using Sense_left  = MockPin<2>;
+using Origin      = MockPin<3>;
 
-template<> bool SenseRight::set_ {false};
-template<> bool SenseLeft ::set_ {false}; 
-template<> bool Origin    ::set_ {false};
+template<> bool Sense_right::set_ {false};
+template<> bool Sense_left ::set_ {false};
+template<> bool Origin     ::set_ {false};
 
 
 struct Mock_control
@@ -88,21 +88,24 @@ const Launch stop      {Launch::stop };
 const Finish fast_stop {Finish::fast_stop};
 const Finish slow_stop {Finish::slow_stop};
 
+int16_t count{0};
+int16_t encoder{0};
+
 int main ()
 {
    int error = 0; 
-   int16_t encoder;
-   Search <Mock_control, SenseLeft, SenseRight, Origin> search {control};
+   Search <Mock_control, Sense_left, Sense_right, Origin, int16_t> search {control, encoder};
 
    search();
-   if (side != left or speed != slow or launch != start or finish != slow_stop) {
+   if (side != left or speed != slow or launch != start) {
          std::cout << "\033[31mError 1\033[0m" << std::endl;
          ++error;
    }
 
    Origin::set();
+   encoder = 100;
    search();
-   if (launch != stop or finish != fast_stop) {
+   if (launch != stop or finish != fast_stop or encoder != 0) {
          std::cout << "\033[31mError 2\033[0m" << std::endl;
          ++error;
    }
@@ -110,46 +113,47 @@ int main ()
    search();
    Origin::clear();
    search();
-   if (side != left or speed != slow or launch != start or finish != slow_stop) {
+   if (side != left or speed != slow or launch != start) {
          std::cout << "\033[31mError 3\033[0m" << std::endl;
          ++error;
    }
    search();
-   if (launch != start or finish != slow_stop) {
+   if (launch != start) {
          std::cout << "\033[31mError 4\033[0m" << std::endl;
          ++error;
    }
-   SenseLeft::set();
+   Sense_left::set();
    search();
    if (launch != stop or finish != fast_stop) {
          std::cout << "\033[31mError 5\033[0m" << std::endl;
          ++error;
    }
    search();
-   SenseLeft::clear();
-   if (side != right or speed != slow or launch != start or finish != slow_stop) {
+   Sense_left::clear();
+   if (side != right or speed != slow or launch != start) {
          std::cout << "\033[31mError 6\033[0m" << std::endl;
          ++error;
    }
 
    Origin::set();
+   encoder = 100;
    search();
-   if (launch != stop or finish != fast_stop) {
+   if (launch != stop or finish != fast_stop or encoder != 0) {
          std::cout << "\033[31mError 7\033[0m" << std::endl;
          ++error;
    }
 
    search();
-   SenseLeft::set();
+   Sense_left::set();
    Origin::clear();
    search();
-   SenseLeft::clear();
+   Sense_left::clear();
    search();
-   if (launch != start or finish != slow_stop) {
+   if (launch != start) {
          std::cout << "\033[31mError 8\033[0m" << std::endl;
          ++error;
    }
-   SenseRight::set();
+   Sense_right::set();
    search();
    search();
    if (launch != stop or finish != fast_stop) {
@@ -157,24 +161,15 @@ int main ()
          ++error;
    }
 
-   SenseRight::clear();
-   Origin::set();
-   search();
+   Sense_right::clear();
+   search.reset();
    if (launch != stop or finish != fast_stop) {
          std::cout << "\033[31mError 10\033[0m" << std::endl;
          ++error;
    }
 
-   search();
-   search();
-   if (launch != stop or finish != fast_stop) {
-         std::cout << "\033[31mError 11\033[0m" << std::endl;
-         ++error;
-   }
-
-
    if (error == 0)
-      std::cout << "\033[32mtest_search Пройден\033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Search\033[0m      \033[1;42m  \033[0m" << std::endl;
    else 
-      std::cout << "\033[31mtest_search Провален\033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Search\033[0m      \033[1;41m  \033[0m" << std::endl;
 }

@@ -1,12 +1,13 @@
 #pragma once
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
+template <class Control, class Vertical, class Sense_left, class Sense_right>
 class Manual
 {
-   enum State {wait, move} state {State::wait};
-   Control &control;
+   enum State {wait, move_right, move_left} state {State::wait};
+   Control& control;
+   Vertical& vertical;
 public:
-   Manual (Control &control);
+   Manual (Control& control, Vertical& vertical);
    void right();
    void left();
    void up();
@@ -22,134 +23,109 @@ public:
    void operator()();
 };
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::Manual (Control &control) : control{control}{}
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+Manual<Control, Vertical, Sense_left, Sense_right>::Manual (Control& control, Vertical& vertical) 
+      : control{control}
+      , vertical{vertical}
+{}
 
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::right()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::right()
 {
    switch (state) {
       case wait:
          if (Sense_right::isClear()) {
             control.right();
             control.start();
-            state = State::move;
+            state = State::move_right;
          }
       break;
-      case move:
-         if (Sense_right::isClear()) {
-            control.stop_h();
-            control.right();
-            control.start();
-         }
+      case move_left:
+         control.stop_h();
+         control.right();
+         control.start();
+         state = State::move_right;
       break;
    }
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::left()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::left()
 {
    switch (state) {
       case wait:
          if (Sense_left::isClear()) {
             control.left();
             control.start();
-            state = State::move;
+            state = State::move_left;
          }
       break;
-      case move:
-         if (Sense_left::isClear()) {
-            control.stop_h();
-            control.left();
-            control.start();
-         }
+      case move_right:
+         control.stop_h();
+         control.left();
+         control.start();
+         state = State::move_left;
       break;
    }
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::up()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::up()
 {
-   switch (state) {
-      case wait:
-         if (Sense_up::isClear()) {
-            control.up();
-            state = State::move;
-         }
-      break;
-      case move:
-         if (Sense_up::isClear()) {
-            control.stop_v();
-            control.down();
-         }
-      break;
-   }
+   vertical.up();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::down()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::down()
 {
-   switch (state) {
-      case wait:
-         if (Sense_down::isClear()) {
-            control.down();
-            state = State::move;
-         }
-      break;
-      case move:
-         if (Sense_left::isClear()) {
-            control.stop_v();
-            control.down();
-         }
-      break;
-   }
+   vertical.down();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::fast()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::fast()
 {
    control.fast();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::slow()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::slow()
 {
    control.slow();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::fast_stop()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::fast_stop()
 {
    control.fast_stop();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::slow_stop()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::slow_stop()
 {
    control.slow_stop();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::stop_h()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::stop_h()
 {
    control.stop_h();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::stop_v()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::stop_v()
 {
-   control.stop_v();
+   vertical.stop();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::stop()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::stop()
 {
    reset();
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::reset()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::reset()
 {
    fast_stop();
    stop_h();
@@ -157,17 +133,25 @@ void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::reset()
    state = State::wait;
 }
 
-template <class Control, class Sense_up, class Sense_down, class Sense_left, class Sense_right>
-void Manual<Control, Sense_up, Sense_down, Sense_left, Sense_right>::operator()()
+template <class Control, class Vertical, class Sense_left, class Sense_right>
+void Manual<Control, Vertical, Sense_left, Sense_right>::operator()()
 {
    switch (state) {
       case wait:
       break;
-      case move:
-         if (Sense_right::isSet() or Sense_left::isSet())
+      case move_right:
+         if (Sense_right::isSet()) {
+            fast_stop();
             stop_h();
-         if (Sense_up::isSet() or Sense_down::isSet())
-            stop_v();
+            state = State::wait;
+         }
+      break;
+      case move_left:
+         if (Sense_left::isSet()) {
+            fast_stop();
+            stop_h();
+            state = State::wait;
+         }
       break;
    }
 }

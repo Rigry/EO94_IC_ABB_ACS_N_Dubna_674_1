@@ -36,20 +36,22 @@ struct MockPin
 // template<> bool MockPin<3>::set_ {false};
 // template<> bool MockPin<4>::set_ {false};
 
-using SenseRight = MockPin<1>;
-using SenseLeft  = MockPin<2>;
-using Origin     = MockPin<3>;
+using Sense_right = MockPin<1>;
+using Sense_left  = MockPin<2>;
+using Sense_up    = MockPin<3>;
+using Origin      = MockPin<4>;
 
-template<> bool SenseRight::set_ {false};
-template<> bool SenseLeft ::set_ {false}; 
-template<> bool Origin    ::set_ {false};
+template<> bool Sense_right::set_ {false};
+template<> bool Sense_left ::set_ {false};
+template<> bool Sense_up   ::set_ {false};
+template<> bool Origin     ::set_ {false};
 
 
 struct Mock_control
 {
    enum class Speed  {slow  = 0b0, fast}  speed  = Speed ::slow;
    enum class Side   {right = 0b0, left}  side   = Side  ::right;
-   enum class Launch {stop  = 0b0, start} launch = Launch::stop;;
+   enum class Launch {stop  = 0b0, start} launch = Launch::stop;
    enum class Finish {slow_stop = 0b0, fast_stop} finish = Finish::fast_stop;
    void init      () {}
    void fast      () {speed  = Speed ::fast; }
@@ -69,10 +71,10 @@ using Side   = Mock_control::Side;
 using Launch = Mock_control::Launch;
 using Finish = Mock_control::Finish;
 
-// Speed  Mock_control::speed {Speed ::slow };
-// Side   Mock_control::side  {Side  ::right};
-// Launch Mock_control::launch{Launch::stop };
-// Finish Mock_control::finish{Finish::fast_stop};
+// Speed  Mock_control.speed {Speed ::slow };
+// Side   Mock_control.side  {Side  ::right};
+// Launch Mock_control.launch{Launch::stop };
+// Finish Mock_control.finish{Finish::fast_stop};
 
 auto& speed  = control.speed;
 auto& side   = control.side;
@@ -88,52 +90,57 @@ const Launch stop      {Launch::stop };
 const Finish fast_stop {Finish::fast_stop};
 const Finish slow_stop {Finish::slow_stop};
 
+int16_t count{0};
+int16_t min_coordinate{0};
+int16_t max_coordinate{0};
+int16_t encoder{0};
+
 int main()
 {
    int error = 0; 
-   int16_t encoder;
-   Calibration <Mock_control, SenseLeft, SenseRight> calibration {control};
+   Calibration <Mock_control, Sense_left, Sense_right, int16_t> calibration {control, encoder, 
+                                                                   min_coordinate, max_coordinate};
 
-//    bool start()
-//    {
    calibration();
-//    retrurn (side == left and spped == slow and launch == start and finish == slow_stop)
-   if (side != left or speed != slow or launch != start or finish != slow_stop) {
+
+   if (side != left or speed != slow or launch != start or finish != fast_stop) {
          std::cout << "\033[31mError 1\033[0m" << std::endl;
          ++error;
    }
-//    }
+
    calibration();
-   if (launch != start or finish != slow_stop) {
+   if (launch != start or finish != fast_stop) {
          std::cout << "\033[31mError 2\033[0m" << std::endl;
          ++error;
    }
-   SenseLeft::set();
+   Sense_left::set();
+   encoder = -300;
    calibration();
-   if (launch != stop or finish != fast_stop) {
+   if (launch != start or finish != fast_stop or min_coordinate != -300) {
          std::cout << "\033[31mError 3\033[0m" << std::endl;
          ++error;
    }
    calibration();
-   SenseLeft::clear();
-   if (side != right or speed != slow or launch != start or finish != slow_stop) {
+   Sense_left::clear();
+   if (side != right or speed != slow or launch != start or finish != fast_stop) {
          std::cout << "\033[31mError 4\033[0m" << std::endl;
          ++error;
    }
     calibration();
-   if (launch != start or finish != slow_stop) {
+   if (launch != start or finish != fast_stop) {
          std::cout << "\033[31mError 5\033[0m" << std::endl;
          ++error;
    }
-   SenseRight::set();
+   Sense_right::set();
+   encoder = 1000;
    calibration();
-   if (launch != stop or finish != fast_stop) {
+   if (launch != stop or finish != fast_stop or max_coordinate != 1000) {
          std::cout << "\033[31mError 6\033[0m" << std::endl;
          ++error;
    }
 
    if (error == 0)
-      std::cout << "\033[32mtest_calibration Пройден\033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Calibration\033[0m \033[1;42m  \033[0m" << std::endl;
    else 
-      std::cout << "\033[31mtest_calibration Провален\033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Calibration\033[0m \033[1;41m  \033[0m" << std::endl;
 }

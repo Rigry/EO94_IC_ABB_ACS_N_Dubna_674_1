@@ -1,6 +1,6 @@
 #pragma once
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Encoder>
+template <class Control, class Sense_left, class Sense_right, class Encoder>
 class Calibration
 {
    enum State {wait, left, right, complete} state {State::wait};
@@ -16,8 +16,8 @@ public:
    void operator()();
 };
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Encoder>
-Calibration<Control, Sense_up, Sense_left, Sense_right, Encoder>::Calibration (Control &control, Encoder &encoder,
+template <class Control, class Sense_left, class Sense_right, class Encoder>
+Calibration<Control, Sense_left, Sense_right, Encoder>::Calibration (Control &control, Encoder &encoder,
                                                                      int16_t &min_coordinate, int16_t &max_coordinate)
    : control {control}
    , encoder {encoder}
@@ -25,30 +25,28 @@ Calibration<Control, Sense_up, Sense_left, Sense_right, Encoder>::Calibration (C
    , max_coordinate {max_coordinate}
 {}
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Encoder>
-bool Calibration<Control, Sense_up, Sense_left, Sense_right, Encoder>::done()
+template <class Control, class Sense_left, class Sense_right, class Encoder>
+bool Calibration<Control, Sense_left, Sense_right, Encoder>::done()
 {
-   if (state == State::complete)
-      return true;
-   else return false;
+   return state == State::complete;
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Encoder>
-void Calibration<Control, Sense_up, Sense_left, Sense_right, Encoder>::stop()
+template <class Control, class Sense_left, class Sense_right, class Encoder>
+void Calibration<Control, Sense_left, Sense_right, Encoder>::stop()
 {
    reset();
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Encoder>
-void Calibration<Control, Sense_up, Sense_left, Sense_right, Encoder>::reset()
+template <class Control, class Sense_left, class Sense_right, class Encoder>
+void Calibration<Control, Sense_left, Sense_right, Encoder>::reset()
 {
    control.fast_stop();
    control.stop_h();
    state = State::wait;
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Encoder>
-void Calibration<Control, Sense_up, Sense_left, Sense_right, Encoder>::operator()()
+template <class Control, class Sense_left, class Sense_right, class Encoder>
+void Calibration<Control, Sense_left, Sense_right, Encoder>::operator()()
 {
    switch (state) {
       case wait:

@@ -90,7 +90,6 @@ int main(void)
    Encoder encoder;
    Horizontal horizontal {control, encoder, flash.brake};
    Vertical vertical {control, flash.time_pause};
-//    Encoder encoder;
    Automatic   <Horizontal, Vertical, Encoder> automatic {horizontal, vertical, encoder};
    Calibration <Control, Sense_up, Sense_left, Sense_right, Encoder> calibration {control, encoder, flash.min_coordinate, flash.max_coordinate};
    Search      <Control, Sense_up, Sense_left, Sense_right, Origin, Encoder> search {control, encoder};
@@ -170,6 +169,7 @@ int main(void)
          case Emergency:
          break;
          case Manual:
+            manual();
          break;
       }
 

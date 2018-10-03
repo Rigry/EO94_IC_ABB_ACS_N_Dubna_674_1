@@ -93,7 +93,7 @@ int main()
    
 
    if (error == 0)
-      std::cout << "\033[32mtest_automatic Пройден\033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Automatic\033[0m   \033[1;42m  \033[0m" << std::endl;
    else 
-      std::cout << "\033[31mtest_automatic Провален\033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Automatic\033[0m   \033[1;41m  \033[0m" << std::endl;
 }

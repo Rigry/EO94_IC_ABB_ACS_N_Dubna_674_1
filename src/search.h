@@ -1,6 +1,6 @@
 #pragma once
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
 class Search 
 {
    enum State {wait, left, right, ready, unready} state {State::wait};
@@ -15,44 +15,40 @@ public:
    void operator()();
 };
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
-Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::Search(Control& control, Encoder& encoder) 
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
+Search<Control, Sense_left, Sense_right, Origin, Encoder>::Search(Control& control, Encoder& encoder) 
    : control {control}
    , encoder {encoder}
 {}
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
-void Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::stop()
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
+void Search<Control, Sense_left, Sense_right, Origin, Encoder>::stop()
 {
    reset();
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
-void Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::reset()
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
+void Search<Control, Sense_left, Sense_right, Origin, Encoder>::reset()
 {
    control.fast_stop();
    control.stop_h();
    state = State::wait;
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
-bool Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::is_done()
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
+bool Search<Control, Sense_left, Sense_right, Origin, Encoder>::is_done()
 {
-   if (state == State::ready)
-      return true;
-   else return false;
+   return state == State::ready;
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
-bool Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::not_found()
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
+bool Search<Control, Sense_left, Sense_right, Origin, Encoder>::not_found()
 {
-   if (state == State::unready)
-      return true;
-   else return false;
+   return state == State::unready;
 }
 
-template <class Control, class Sense_up, class Sense_left, class Sense_right, class Origin, class Encoder>
-void Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::operator()()
+template <class Control, class Sense_left, class Sense_right, class Origin, class Encoder>
+void Search<Control, Sense_left, Sense_right, Origin, Encoder>::operator()()
 {
    switch (state) {
       case wait:
@@ -60,13 +56,11 @@ void Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::operat
             if (Sense_left::isSet()) {
                control.right();
                control.slow();
-               control.fast_stop();
                control.start();
                state = State::right;
             } else if (Sense_left::isClear()) {
                control.left ();
                control.slow ();
-               control.fast_stop();
                control.start();
                state = State::left;
             }
@@ -77,10 +71,12 @@ void Search<Control, Sense_up, Sense_left, Sense_right, Origin, Encoder>::operat
       break;
       case left:
          if(Origin::isSet()) {
+            control.fast_stop();
             control.stop_h();
             encoder = 0;
             state = State::ready;
          } else if (Sense_left::isSet()) {
+            control.fast_stop();
             control.stop_h();
             state = State::wait;
          }
