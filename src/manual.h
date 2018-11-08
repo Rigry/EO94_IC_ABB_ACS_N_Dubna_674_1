@@ -41,6 +41,8 @@ void Manual<Control, Vertical, Sense_left, Sense_right>::right()
             state = State::move_right;
          }
       break;
+      case move_right:
+      break;
       case move_left:
          control.stop_h();
          control.right();
@@ -66,6 +68,8 @@ void Manual<Control, Vertical, Sense_left, Sense_right>::left()
          control.left();
          control.start();
          state = State::move_left;
+      break;
+      case move_left:
       break;
    }
 }

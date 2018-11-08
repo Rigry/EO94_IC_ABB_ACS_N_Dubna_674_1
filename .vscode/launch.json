@@ -3,6 +3,35 @@
 	"version": "0.2.0",
 	"configurations": [
 
+		{ 
+			"name": "01",
+			"type": "cppdbg",
+			"request": "launch",
+         "miDebuggerPath": "arm-none-eabi-gdb",
+         "program": "${workspaceRoot}/build/EO94_IC_ABB_ACS.elf",
+			"miDebuggerServerAddress": "localhost:4242",
+			"MIMode": "gdb",
+			"cwd": "${workspaceRoot}"
+		},
+		{
+			"name": "test_global",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}//test/build/test_global",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": true,
+			"MIMode": "gdb",
+			"setupCommands": [
+				 {
+					  "description": "Enable pretty-printing for gdb",
+					  "text": "-enable-pretty-printing",
+					  "ignoreFailures": true
+				 }
+			]
+		},
 		{
 			"name": "test_manual",
 			"type": "cppdbg",

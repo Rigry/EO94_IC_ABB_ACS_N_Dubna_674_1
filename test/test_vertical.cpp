@@ -265,8 +265,8 @@ int main ()
    time_count = 0;
 
    if (error == 0)
-      std::cout << "\033[1;37mТест класса Vertical\033[0m    \033[1;42m  \033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Vertical\033[0m    \033[1;32mpassed\033[0m" << std::endl;
    else 
-      std::cout << "\033[1;37mТест класса Vertical\033[0m    \033[1;41m  \033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Vertical\033[0m    \033[1;31mfailed\033[0m" << std::endl;
 }
 

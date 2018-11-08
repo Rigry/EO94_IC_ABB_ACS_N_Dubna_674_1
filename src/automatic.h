@@ -11,7 +11,8 @@ class Automatic
 public:
    Automatic (Horizontal& horizontal, Vertical& vertical, Encoder& encoder);
    void move(int16_t coordinate);
-   void move();
+   void move_up();
+   void move_down();
    void stop();
    void reset();
    void operator()();
@@ -44,7 +45,7 @@ void Automatic <Horizontal, Vertical, Encoder>::move(int16_t coordinate)
    this->coordinate = coordinate;
    switch (state) {
       case wait:
-         if (vertical.isUp() or vertical.isDown()) {
+         if (not vertical.isWorking() and (vertical.isUp() or vertical.isDown())) {
             horizontal.move(coordinate);
             state = State::horizontal_;
          }
@@ -58,19 +59,37 @@ void Automatic <Horizontal, Vertical, Encoder>::move(int16_t coordinate)
 }
 
 template <class Horizontal, class Vertical, class Encoder>
-void Automatic <Horizontal, Vertical, Encoder>::move()
+void Automatic <Horizontal, Vertical, Encoder>::move_up()
 {
    switch(state) {
       case wait:
-         state = State::vertical_;
-         if (vertical.isUp())
-            vertical.down();
-         else 
+         if (not vertical.isUp())
             vertical.up();
+         state = State::vertical_;
       break;
       case horizontal_:
       break;
       case vertical_:
+         if (not vertical.isUp())
+            vertical.up();
+      break;
+   }
+}
+
+template <class Horizontal, class Vertical, class Encoder>
+void Automatic <Horizontal, Vertical, Encoder>::move_down()
+{
+   switch(state) {
+      case wait:
+         if (not vertical.isDown())
+            vertical.down();
+         state = State::vertical_;
+      break;
+      case horizontal_:
+      break;
+      case vertical_:
+         if (not vertical.isDown())
+            vertical.down();
       break;
    }
 }
@@ -82,12 +101,13 @@ void Automatic <Horizontal, Vertical, Encoder>::operator()()
       case wait:
       break;
       case horizontal_:
-         if (encoder == coordinate) {
+            // horizontal.interrupt();
+         if (not horizontal.is_working()) {
             state = State::wait;
          }
       break;
       case vertical_:
-         if (vertical.isUp() or vertical.isDown()){
+         if (not vertical.isWorking() and (vertical.isUp() or vertical.isDown())){
             state = State::wait;
          }
       break;

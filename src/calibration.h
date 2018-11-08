@@ -28,7 +28,7 @@ Calibration<Control, Sense_left, Sense_right, Encoder>::Calibration (Control &co
 template <class Control, class Sense_left, class Sense_right, class Encoder>
 bool Calibration<Control, Sense_left, Sense_right, Encoder>::done()
 {
-   return state == State::complete;
+   return (state == State::complete);
 }
 
 template <class Control, class Sense_left, class Sense_right, class Encoder>
@@ -74,7 +74,6 @@ void Calibration<Control, Sense_left, Sense_right, Encoder>::operator()()
          }
       break;
       case complete:
-         state = State::wait;
       break;
    }
 }

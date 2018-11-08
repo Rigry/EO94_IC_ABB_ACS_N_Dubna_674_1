@@ -19,7 +19,7 @@ BUILD_DIR = build
 # source
 ######################################
 LIBRARY_PATH = /home/alexandr/code/mculib2
-BOOST_ROOT = /home/alexandr/code/boost_1_68_0
+# BOOST_ROOT = /home/alexandr/code/boost_1_68_0
 
 CPP_SOURCES_F0 = src/main.cpp
 
@@ -28,8 +28,8 @@ ASM_SOURCES_F0 = $(LIBRARY_PATH)/STM32F0_files/startup_stm32f030x6.s
 # C includes
 C_INCLUDES =  
 C_INCLUDES += -Isrc
-C_INCLUDES += -I$(BOOST_ROOT)
-C_INCLUDES += -I$(BOOST_ROOT)\stage\lib64
+# C_INCLUDES += -I$(BOOST_ROOT)
+# C_INCLUDES += -I$(BOOST_ROOT)\stage\lib64
 C_INCLUDES += -I$(LIBRARY_PATH)
 C_INCLUDES += -I$(LIBRARY_PATH)/hal
 C_INCLUDES += -I$(LIBRARY_PATH)/hal/ral
@@ -70,7 +70,8 @@ MCU_F0 = $(CPU_F0) -mthumb $(FPU_F0) $(FLOAT-ABI_F0)
 # compile gcc flags
 ASFLAGS_F0 = $(MCU_F0) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-CFLAGS_F0 = $(MCU_F0) $(C_DEFS_F0) $(C_INCLUDES) $(C_INCLUDES_F0) $(OPT) -Wall -Wno-register -fdata-sections -ffunction-sections -fno-exceptions 
+CFLAGS_F0  = $(MCU_F0) $(C_DEFS_F0) $(C_INCLUDES) $(C_INCLUDES_F0) $(OPT)
+CFLAGS_F0 += -Wall -Wno-register -fdata-sections -ffunction-sections -fno-exceptions -fno-strict-volatile-bitfields
 
 CFLAGS_F0 += -g -gdwarf-2 
 
@@ -84,10 +85,10 @@ CFLAGS_F0 += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 LDSCRIPT_F0 = $(LIBRARY_PATH)/STM32F0_files/STM32F030K6Tx_FLASH.ld
 
 # libraries
-LIBS = -lc -lm -lnosys
+LIBS = -lc -lm -lnosys 
 
-LDFLAGS_F0 = $(MCU_F0) -specs=nano.specs -T$(LDSCRIPT_F0) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET_F0).map,--cref -Wl,--gc-sections
-
+LDFLAGS_F0  = $(MCU_F0) -specs=nano.specs -specs=nosys.specs
+LDFLAGS_F0 += -T$(LDSCRIPT_F0) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET_F0).map,--cref -Wl,--gc-sections
 
 # default action: build all
 all: clean \
@@ -113,7 +114,7 @@ $(BUILD_DIR)/startup_stm32f030x6.o: $(ASM_SOURCES_F0) Makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS_F0) $< -o $@
 
 $(BUILD_DIR)/$(TARGET_F0).elf: $(OBJECTS_F0) build/main.o Makefile
-	$(CC) $(OBJECTS_F0) build/main.o $(LDFLAGS_F0) -o $@
+	$(CPP) $(OBJECTS_F0) build/main.o $(LDFLAGS_F0) -o $@
 	$(SZ) $@
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)

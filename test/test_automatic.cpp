@@ -89,11 +89,8 @@ int main()
    }
    
 
-
-   
-
    if (error == 0)
-      std::cout << "\033[1;37mТест класса Automatic\033[0m   \033[1;42m  \033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Automatic\033[0m   \033[1;32mpassed\033[0m" << std::endl;
    else 
-      std::cout << "\033[1;37mТест класса Automatic\033[0m   \033[1;41m  \033[0m" << std::endl;
+      std::cout << "\033[1;37mТест класса Automatic\033[0m   \033[1;32mfailed\033[0m" << std::endl;
 }

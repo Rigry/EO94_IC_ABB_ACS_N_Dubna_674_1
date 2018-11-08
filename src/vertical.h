@@ -15,15 +15,16 @@ class Vertical : Subscriber
    void wake();
    void sleep();
    uint16_t time_count {0};
-   Control &control;
+   Control& control;
 public:
    uint16_t time_pause;
-   Vertical (Control &control, uint16_t time_pause);
+   Vertical (Control& control, uint16_t time_pause);
    void stop();
    void up();
    void down();
    bool isUp();
    bool isDown();
+   bool isWorking(){return state != State::Wait;}
 };
 
 template <class Control, class Sense_up, class Sense_down>
@@ -35,8 +36,10 @@ Vertical<Control, Sense_up, Sense_down>::Vertical (Control &control, uint16_t ti
 template <class Control, class Sense_up, class Sense_down>
 void Vertical<Control, Sense_up, Sense_down>::stop ()
 {
-   control.stop_v();
-   state = State::Pause_Wait;
+   if (state != State::Wait) {
+      control.stop_v();
+      state = State::Pause_Wait;
+   }
 } 
 
 template <class Control, class Sense_up, class Sense_down>

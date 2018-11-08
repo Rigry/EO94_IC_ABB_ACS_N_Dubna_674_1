@@ -19,16 +19,18 @@ all: $(BUILD_DIR)
 	g++ test_vertical.cpp $(CPP_FLAGS) -o ./$(BUILD_DIR)/test_vertical
 	g++ test_search.cpp $(CPP_FLAGS) -o ./$(BUILD_DIR)/test_search
 	g++ test_manual.cpp $(CPP_FLAGS) -o ./$(BUILD_DIR)/test_manual
+	g++ test_global.cpp $(CPP_FLAGS) -o ./$(BUILD_DIR)/test_global
 	./$(BUILD_DIR)/test_calibration
 	./$(BUILD_DIR)/test_horizontal
 	./$(BUILD_DIR)/test_automatic
 	./$(BUILD_DIR)/test_vertical
 	./$(BUILD_DIR)/test_search
 	./$(BUILD_DIR)/test_manual
+	./$(BUILD_DIR)/test_global
 
 $(BUILD_DIR):
 	mkdir $@
 
 current: $(BUILD_DIR)
-	g++-7 test_manual.cpp $(CPP_FLAGS) -o ./$(BUILD_DIR)/test_manual
-	./$(BUILD_DIR)/test_manual
+	g++-7 test_global.cpp $(CPP_FLAGS) -o ./$(BUILD_DIR)/test_global
+	./$(BUILD_DIR)/test_global
