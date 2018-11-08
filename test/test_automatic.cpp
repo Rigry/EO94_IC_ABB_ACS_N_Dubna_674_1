@@ -8,22 +8,26 @@
 class Mock_horizontal
 {
 public:
-   bool move_ {false};
-   void move (int16_t coordinate){move_ = true;}
+   bool move_  {false};
+   bool working{false};
+   void move (int16_t coordinate){working =true; move_ = true;}
    void operator()(){}
+   bool is_working(){return working;}
 } horizontal;
 
 class Mock_vertical
 {
 public:
-   bool Sense_up  {false};
-   bool Sense_down{false};
-   bool up_       {false};
-   bool down_     {false};
-   void up    ()  {up_ = true;}
-   void down  ()  {down_ = true;}
-   bool isUp  ()  {return Sense_up;}
-   bool isDown()  {return Sense_down;}
+   bool Sense_up   {false};
+   bool Sense_down {false};
+   bool up_        {false};
+   bool down_      {false};
+   bool working    {false};
+   void up    ()   {working =true; up_ = true;}
+   void down  ()   {working =true; down_ = true;}
+   bool isUp  ()   {return Sense_up;}
+   bool isDown()   {return Sense_down;}
+   bool isWorking(){return working;}
 } vertical;
 
 auto& move_ = horizontal.move_;
@@ -47,15 +51,16 @@ int main()
    }
    while (++encoder != 300) {
       automatic();
-      automatic.move(); //пробуем вертикальное перемещение
+      automatic.move_up(); //пробуем вертикальное перемещение
       if (up_ != false or down_ != false) {
          std::cout << "\033[36mError 2\033[0m" << std::endl;
          ++error;
       }
    }
+   horizontal.working = false;
    automatic();
    move_ = false;
-   automatic.move();
+   automatic.move_down();
    if (up_ != false or down_ != true) {
          std::cout << "\033[36mError 3\033[0m" << std::endl;
          ++error;
@@ -65,7 +70,7 @@ int main()
    Sense_down = true;
    automatic();
    down_ = false;
-   automatic.move();
+   automatic.move_up();
    if (up_ != true or down_ != false) {
          std::cout << "\033[36mError 4\033[0m" << std::endl;
          ++error;
@@ -78,6 +83,7 @@ int main()
       ++error;
    }
    Sense_up = true;
+   vertical.working = false;
    automatic();
    automatic.move(150);
    if (move_ != true) {

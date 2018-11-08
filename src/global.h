@@ -92,88 +92,83 @@ public:
             if (state_is_wait() and modbus.inRegs.operation.enable) {
                state_search();
                modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
-            }
-            if (state_is_search()) {
+            } else if (state_is_search()) {
                if (not modbus.inRegs.operation.enable) {
                   search.stop();
                   state_wait();
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
-               } else if (modbus.inRegs.operation.enable) {
-               	if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
-               	   search.reset();
-               	   state_manual();
-               	}
-					}
-            }
-            if (state_is_calibration()) {
+						break;
+               } 
+               if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
+                  search.reset();
+                  state_manual();
+               }
+            } else if (state_is_calibration()) {
                if (not modbus.inRegs.operation.enable) {
                   calibration.stop();
                   state_wait();
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
-               }
-            }
-            if (state_is_automatic()) {
+					}
+            } else if (state_is_automatic()) {
                if (not modbus.inRegs.operation.enable) {
                   automatic.stop();
                   state_wait();
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
-               } else if (modbus.inRegs.operation.enable) {
-               	if (modbus.inRegs.operation.stop_h or modbus.inRegs.operation.stop_v) {
-               	   automatic.reset();
-               	}
-               	if (modbus.inRegs.operation.up and not modbus.inRegs.operation.down) {
-               	   automatic.move_up();
-               	} else if (modbus.inRegs.operation.down and not modbus.inRegs.operation.up) {
-               	   automatic.move_down();
-               	}
-               	if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
-               	   automatic.reset();
-               	   state_manual();
-               	} else if (modbus.inRegs.operation.mode == Operation::Mode::calibration and not calibration_done) {
-               	   automatic.reset();
-               	   state_calibration();
-               	}
-					}
-            }
-            if (state_is_manual()) {
+                  break;
+               }
+               if (modbus.inRegs.operation.stop_h or modbus.inRegs.operation.stop_v) {
+                  automatic.reset();
+               }
+               if (modbus.inRegs.operation.up and not modbus.inRegs.operation.down) {
+                  automatic.move_up();
+               } else if (modbus.inRegs.operation.down and not modbus.inRegs.operation.up) {
+                  automatic.move_down();
+               }
+               if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
+                  automatic.reset();
+                  state_manual();
+               } else if (modbus.inRegs.operation.mode == Operation::Mode::calibration and not calibration_done) {
+                  automatic.reset();
+                  state_calibration();
+               }
+            } else if (state_is_manual()) {
                if (not modbus.inRegs.operation.enable) {
                   manual.stop();
                   state_wait();
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
-               } else if (modbus.inRegs.operation.enable) {
-               	if (modbus.inRegs.operation.stop_h) {
-               	   manual.stop_h();
-               	}
-               	if (modbus.inRegs.operation.stop_v) {
-               	   manual.stop_v();
-               	}
-               	if (modbus.inRegs.operation.up and not modbus.inRegs.operation.down and not modbus.inRegs.operation.stop_v) {
-               	   manual.up();
-               	} else if (modbus.inRegs.operation.down and not modbus.inRegs.operation.up and not modbus.inRegs.operation.stop_v) {
-               	   manual.down();
-               	}
-               	if (modbus.inRegs.operation.braking == Operation::Braking::slow_stop) {
-               	   manual.slow_stop();
-               	} else if (modbus.inRegs.operation.braking == Operation::Braking::fast_stop) {
-               	   manual.fast_stop();
-               	}
-               	if (modbus.inRegs.operation.speed == Operation::Speed::slow) {
-               	   manual.slow();
-               	} else if (modbus.inRegs.operation.speed == Operation::Speed::fast) {
-               	   manual.fast();
-               	}
-               	if (modbus.inRegs.operation.right and not modbus.inRegs.operation.left and not modbus.inRegs.operation.stop_h) {
-               	   manual.right();
-               	} else if (modbus.inRegs.operation.left and not modbus.inRegs.operation.right and not modbus.inRegs.operation.stop_h) {
-               	   manual.left();
-               	}
-               	if (modbus.inRegs.operation.mode == Operation::Mode::auto_mode and Tilt::isSet()) {
-               	   manual.reset();
-               	   state_automatic();
-               	}
-					}
-            }
-            if (state_is_emergency()) {
+						break;
+               } 
+               if (modbus.inRegs.operation.stop_h) {
+                  manual.stop_h();
+               }
+               if (modbus.inRegs.operation.stop_v) {
+                  manual.stop_v();
+               }
+               if (modbus.inRegs.operation.up and not modbus.inRegs.operation.down and not modbus.inRegs.operation.stop_v) {
+                  manual.up();
+               } else if (modbus.inRegs.operation.down and not modbus.inRegs.operation.up and not modbus.inRegs.operation.stop_v) {
+                  manual.down();
+               }
+               if (modbus.inRegs.operation.braking == Operation::Braking::slow_stop) {
+                  manual.slow_stop();
+               } else if (modbus.inRegs.operation.braking == Operation::Braking::fast_stop) {
+                  manual.fast_stop();
+               }
+               if (modbus.inRegs.operation.speed == Operation::Speed::slow) {
+                  manual.slow();
+               } else if (modbus.inRegs.operation.speed == Operation::Speed::fast) {
+                  manual.fast();
+               }
+               if (modbus.inRegs.operation.right and not modbus.inRegs.operation.left and not modbus.inRegs.operation.stop_h) {
+                  manual.right();
+               } else if (modbus.inRegs.operation.left and not modbus.inRegs.operation.right and not modbus.inRegs.operation.stop_h) {
+                  manual.left();
+               }
+               if (modbus.inRegs.operation.mode == Operation::Mode::auto_mode and Tilt::isSet()) {
+                  manual.reset();
+                  state_automatic();
+               }
+            } else if (state_is_emergency()) {
                if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
                   state_manual();
                }

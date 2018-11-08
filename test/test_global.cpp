@@ -199,20 +199,23 @@ struct Mock_automatic
 	, vertical {vertical}
 	, encoder {encoder}
 	{}
-	static bool operator_;
+   static bool operator_;
    static bool stop_;
    static bool reset_;
-   static bool updown;
+   static bool up;
+	static bool down;
    void move(int16_t coordinate){move_coordinate = true; stop_ = false; reset_ = false;}
-   void move(){updown = true;}
-   void stop(){stop_ = true; updown = false; move_coordinate = false;}
-   void reset(){reset_ = true; updown = false; move_coordinate = false;}
+   void move_up(){up = true;}
+   void move_down(){down = true;}
+   void stop(){stop_ = true; up = false; down =false; move_coordinate = false;}
+   void reset(){reset_ = true; up = false; down = false; move_coordinate = false;}
    void operator()(){operator_ = true; stop_ = false; reset_ = false;}
 };
 bool Mock_automatic::operator_{false};
 bool Mock_automatic::stop_    {false};
 bool Mock_automatic::reset_   {false};
-bool Mock_automatic::updown   {false};
+bool Mock_automatic::up       {false};
+bool Mock_automatic::down     {false};
 
 
 struct Mock_manual
@@ -501,6 +504,11 @@ bool auto_disable()
    global.reaction(ADR (operation));
    good &= Mock_automatic::stop_;
    good &= (modbus.outRegs.states.mode == States::Mode::wait);
+	modbus.inRegs.operation.up = true;
+   modbus.inRegs.operation.down = false;
+	global.reaction(ADR (operation));
+   good &= not Mock_automatic::up;
+	good &= not Mock_automatic::down;
 
    return good;
 }
@@ -531,6 +539,52 @@ bool auto_stop()
    return good;
 }
 
+bool auto_move()
+{
+	bool good {true};
+   Global <Mock_modbus<InRegs, OutRegs>, Mock_flash <FlashData>,
+			  Mock_encoder, Mock_horizontal, Mock_vertical, 
+			  Mock_manual, Mock_search, Mock_automatic, 
+			  Mock_calibration, Mock_control, 
+			  Origin, Sense_up, Sense_down, Tilt, Sense_right, Sense_left> 
+			  global{modbus, flash};
+   modbus.inRegs.operation.mode = Operation::Mode::auto_mode; // reset
+   modbus.inRegs.operation.enable = true;
+   global.reaction(ADR (operation));
+   Sense_up::set();
+   Origin::set();
+   global();
+	modbus.inRegs.coordinate = 200;
+	global.reaction(ADR (coordinate));
+	good &= move_coordinate;
+}
+
+bool auto_move_disable()
+{
+	bool good {true};
+   Global <Mock_modbus<InRegs, OutRegs>, Mock_flash <FlashData>,
+			  Mock_encoder, Mock_horizontal, Mock_vertical, 
+			  Mock_manual, Mock_search, Mock_automatic, 
+			  Mock_calibration, Mock_control, 
+			  Origin, Sense_up, Sense_down, Tilt, Sense_right, Sense_left> 
+			  global{modbus, flash};
+   modbus.inRegs.operation.mode = Operation::Mode::auto_mode; // reset
+   modbus.inRegs.operation.enable = true;
+   global.reaction(ADR (operation));
+   Sense_up::set();
+   Origin::set();
+   global();
+	modbus.inRegs.coordinate = 200;
+	global.reaction(ADR (coordinate));
+	good &= move_coordinate;
+	modbus.inRegs.operation.enable = false;
+   global.reaction(ADR (operation));
+	modbus.inRegs.operation.up = true;
+   modbus.inRegs.operation.down = false;
+   global.reaction(ADR (operation));
+   good &= not Mock_automatic::up;
+}
+
 bool auto_up_down()
 {
    bool good {true};
@@ -549,17 +603,18 @@ bool auto_up_down()
    modbus.inRegs.operation.up = true;
    modbus.inRegs.operation.down = false;
    global.reaction(ADR (operation));
-   good &= Mock_automatic::updown;
-   Mock_automatic::updown = false;
+   good &= Mock_automatic::up;
+   Mock_automatic::up = false;
    modbus.inRegs.operation.up = false;
    modbus.inRegs.operation.down = true;
    global.reaction(ADR (operation));
-   good &= Mock_automatic::updown;
-   Mock_automatic::updown = false;
+   good &= Mock_automatic::down;
+   Mock_automatic::down = false;
    modbus.inRegs.operation.up = true;
    modbus.inRegs.operation.down = true;
    global.reaction(ADR (operation));
-   good &= not Mock_automatic::updown;
+   good &= not Mock_automatic::up;
+	good &= not Mock_automatic::down;
 
    return good;
 }
@@ -653,7 +708,6 @@ bool manual_stop_h()
    modbus.inRegs.operation.stop_v = false;
    global.reaction(ADR (operation));
    good &= Mock_manual::stop_h_;
-   good &= modbus.outRegs.states.stop_h;
 
    return good;
 }
@@ -678,7 +732,6 @@ bool manual_stop_v()
    modbus.inRegs.operation.stop_v = true;
    global.reaction(ADR (operation));
    good &= Mock_manual::stop_v_;
-   good &= modbus.outRegs.states.stop_v;
 
    return good;
 }
@@ -705,7 +758,6 @@ bool manual_up()
    modbus.inRegs.operation.down = false;
    global.reaction(ADR (operation));
    good &= Mock_manual::up_;
-   good &= modbus.outRegs.states.up;
 
    return good;
 }
@@ -732,7 +784,6 @@ bool manual_down()
    modbus.inRegs.operation.down = true;
    global.reaction(ADR (operation));
    good &= Mock_manual::down_;
-   good &= modbus.outRegs.states.down;
 
    return good;
 }
@@ -754,7 +805,6 @@ bool manual_slow_stop()
    modbus.inRegs.operation.braking = Operation::Braking::slow_stop;
    global.reaction(ADR (operation));
    good &= Mock_manual::slow_stop_;
-   good &= modbus.outRegs.states.slow_stop;
 
    return good;
 }
@@ -776,7 +826,6 @@ bool manual_fast_stop()
    modbus.inRegs.operation.braking = Operation::Braking::fast_stop;
    global.reaction(ADR (operation));
    good &= Mock_manual::fast_stop_;
-   good &= modbus.outRegs.states.fast_stop;
 
    return good;
 }
@@ -798,7 +847,6 @@ bool manual_slow()
    modbus.inRegs.operation.speed == Operation::Speed::slow;
    global.reaction(ADR (operation));
    good &= Mock_manual::slow_;
-   good &= modbus.outRegs.states.slow;
 
    return good;
 }
@@ -820,7 +868,6 @@ bool manual_fast()
    modbus.inRegs.operation.speed = Operation::Speed::fast;
    global.reaction(ADR (operation));
    good &= Mock_manual::fast_;
-   good &= modbus.outRegs.states.fast;
 
    return good;
 }
@@ -844,13 +891,11 @@ bool manual_right()
    modbus.inRegs.operation.stop_h = true;
    global.reaction(ADR (operation));
    good &= not Mock_manual::right_;
-   good &= not modbus.outRegs.states.right;
    modbus.inRegs.operation.right = true;
    modbus.inRegs.operation.left = false;
    modbus.inRegs.operation.stop_h = false;
    global.reaction(ADR (operation));
    good &= Mock_manual::right_;
-   good &= modbus.outRegs.states.right;
 
    return good;
 }
@@ -880,7 +925,6 @@ bool manual_left()
    modbus.inRegs.operation.stop_h = false;
    global.reaction(ADR (operation));
    good &= Mock_manual::left_;
-   good &= modbus.outRegs.states.left;
 
    return good;
 }
@@ -1321,6 +1365,8 @@ int main()
    test ("\033[37m   search_to_manual       \033[0m",search_to_manual);
    test ("\033[37m   auto_disable           \033[0m",auto_disable);
    test ("\033[37m   auto_stop              \033[0m",auto_stop);
+	test ("\033[37m   auto_move              \033[0m",auto_move);
+	test ("\033[37m   auto_move_disable      \033[0m",auto_move_disable);
    test ("\033[37m   auto_up_down           \033[0m",auto_up_down);
    test ("\033[37m   auto_to_manual         \033[0m",auto_to_manual);
    test ("\033[37m   auto_to_calibr         \033[0m",auto_to_calibr);
