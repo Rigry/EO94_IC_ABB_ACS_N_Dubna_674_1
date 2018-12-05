@@ -18,8 +18,7 @@ BUILD_DIR = build
 ######################################
 # source
 ######################################
-LIBRARY_PATH = /home/alexandr/code/mculib2
-# BOOST_ROOT = /home/alexandr/code/boost_1_68_0
+LIBRARY_PATH = /net/factory/share/projects/code/mculib2
 
 CPP_SOURCES_F0 = src/main.cpp
 

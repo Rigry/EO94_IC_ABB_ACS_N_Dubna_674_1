@@ -12,20 +12,20 @@ using USART_ = USART<USART1, bufSize, RXpin, TXpin, RTSpin, LEDpin>;
 // модбас
 ///////////////////////////////////////////////////////////////////////////////
 struct Operation {
-   enum Mode     {auto_mode = 0b00, manual_mode, search, calibration};
+   enum Mode      {wait = 0b000, auto_mode, manual_mode, search, calibration, emergency};
    enum Braking  {slow_stop = 0b0, fast_stop};
    enum Speed    {slow = 0b0, fast};
-   bool enable      :1; // Bit 0 Start: prohibit (0), allow (1) a job;
-   bool stop_h      :1; // Bit 1 Stop_h: stop horizontal movement (1);
-   bool stop_v      :1; // Bit 2 Stop_v: stop vertical movement (1);
-   Braking braking  :1; // Bit 3 Braking: fast_stop (1), slow_stop (0);
-   Speed speed      :1; // Bit 4 Speed: slow (0), fast (1);
-   bool right       :1; // Bit 5 Right: move right (1);
-   bool left        :1; // Bit 6 Left: move left (1);
-   bool up          :1; // Bit 7 Up: up (1);
-   bool down        :1; // Bit 8 Down: down (1);
-   Mode mode        :2; // Bit 9-10 Mode: auto mode (00), manual mode (01), search (10), calibration (11);
-   uint16_t res     :5; // Bits 15:11 res: Reserved, must be kept cleared
+   Mode mode        :3; // Bit 0-2 Mode: auto mode (00), manual mode (01), search (10), calibration (11);
+   bool enable      :1; // Bit 3 Start: prohibit (0), allow (1) a job;
+   bool stop_h      :1; // Bit 4 Stop_h: stop horizontal movement (1);
+   bool stop_v      :1; // Bit 5 Stop_v: stop vertical movement (1);
+   Braking braking  :1; // Bit 6 Braking: fast_stop (1), slow_stop (0);
+   Speed speed      :1; // Bit 7 Speed: slow (0), fast (1);
+   bool right       :1; // Bit 8 Right: move right (1);
+   bool left        :1; // Bit 9 Left: move left (1);
+   bool up          :1; // Bit 10 Up: up (1);
+   bool down        :1; // Bit 11 Down: down (1);
+   uint16_t res     :5; // Bits 15:12 res: Reserved, must be kept cleared
 };
 struct Sensors {
    bool sense_right:1;  // Bit 0 sense_right: Right Sensor
