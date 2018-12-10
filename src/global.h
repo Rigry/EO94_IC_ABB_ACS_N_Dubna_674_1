@@ -81,6 +81,7 @@ public:
          case ADR (brake):
             flash.brake
                = horizontal.brake
+               = modbus.outRegs.brake
                = modbus.inRegs.brake;
             break;
          case ADR (time_pause):

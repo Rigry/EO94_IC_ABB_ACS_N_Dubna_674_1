@@ -98,6 +98,7 @@ struct OutRegs {
    int16_t           coordinate;     // 6
    Sensors           sensors;        // 7
    States            states;         // 8
+   uint16_t          brake;          // 9
 };
 
 

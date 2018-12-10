@@ -76,6 +76,7 @@ int main(void)
    modbus.outRegs.modbusAddress     = modbus.address = flash.modbusAddress;
    modbus.outRegs.min_coordinate    = flash.min_coordinate;
    modbus.outRegs.max_coordinate    = flash.max_coordinate;
+   modbus.outRegs.brake             = flash.brake;
    modbus.arInRegsMax[ADR(uartSet)] = 0b111111;
    modbus.inRegsMin.modbusAddress   = 1;
    modbus.inRegsMax.modbusAddress   = 255;

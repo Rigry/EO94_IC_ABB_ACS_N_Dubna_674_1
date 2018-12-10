@@ -1,4 +1,5 @@
-LIBRARY_PATH = /home/alexandr/code/mculib2
+# LIBRARY_PATH = /home/alexandr/code/mculib2
+LIBRARY_PATH = /net/factory/users/dvk/code/mculib2
 
 C_INCLUDES_ =  
 C_INCLUDES_ += -I../src
