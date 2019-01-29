@@ -5,6 +5,7 @@ struct Control
 {
    States& states;
    Control (States& states):states{states}{}
+   using Launch_ = Launch;
    void init()
    {
       Speed ::template configure<PinConf_t::Output>();

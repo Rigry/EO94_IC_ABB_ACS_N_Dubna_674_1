@@ -24,7 +24,7 @@ public:
    void down();
    bool isUp();
    bool isDown();
-   bool isWorking(){return state != State::Wait;}
+   bool isWorking(){return not ((state == State::Wait) or (state == State::Pause_Wait));}
 };
 
 template <class Control, class Sense_up, class Sense_down>
