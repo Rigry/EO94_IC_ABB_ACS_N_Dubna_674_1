@@ -53,6 +53,11 @@ struct States {
    bool lost      :1;  // Bit 14 lost: lost_coordinate(1)
    uint16_t res   :1;  // Bits 15 res: Reserved, must be kept cleared
 };
+struct Step {
+   uint16_t distance :14; // на сколько шагнуть
+   bool     left     :1;
+   bool     right    :1;
+};
 // struct Zone {
 //    bool _0  :1;
 //    bool _1  :1;
@@ -83,6 +88,7 @@ struct InRegs {
    uint16_t  brake;           // 5
    uint16_t  time_pause;      // 6
    Operation operation;       // 7
+   Step      step;            // 8
    // uint16_t  delta;
    // int16_t   origin;
    // Zone      zone;

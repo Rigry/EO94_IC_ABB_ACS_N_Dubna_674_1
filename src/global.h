@@ -19,6 +19,7 @@ class Global
    Automatic automatic;
    Calibration calibration;
 
+   bool zero {false};
    bool lost_coordinate {true};
    bool calibration_done {false};
    void state_wait          (){state = State::wait_; modbus.outRegs.states.mode = States::Mode::wait;}
@@ -42,7 +43,7 @@ public:
       , control     {modbus.outRegs.states}
       , horizontal  {control, encoder, flash.brake}
       , vertical    {control, flash.time_pause}
-      , manual      {control, vertical}
+      , manual      {control, vertical, encoder}
       , search      {control, encoder}
       , automatic   {horizontal, vertical, encoder}
       , calibration {control, encoder, flash.min_coordinate, flash.max_coordinate}
@@ -178,7 +179,14 @@ public:
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
                }
             }
-      
+            break;
+            case ADR (step):
+               if (state_is_manual()) {
+                  if (modbus.inRegs.step.left)
+                     manual.step_left (modbus.inRegs.step.distance);
+                  else if (modbus.inRegs.step.right)
+                     manual.step_right (modbus.inRegs.step.distance);
+               }
             break;
             default: break;
       }
@@ -189,7 +197,7 @@ public:
       modbus.outRegs.sensors.sense_down  = Sense_down ::isSet();
       modbus.outRegs.sensors.sense_right = Sense_right::isSet();
       modbus.outRegs.sensors.sense_left  = Sense_left ::isSet();
-      modbus.outRegs.sensors.origin      = Origin     ::isClear();
+      modbus.outRegs.sensors.origin      = Origin     ::isSet();
       modbus.outRegs.sensors.tilt        = Tilt       ::isSet();
       if (modbus.outRegs.sensors.origin)
          encoder = 0;
@@ -250,8 +258,11 @@ public:
                   automatic.stop();
                   encoder = flash.max_coordinate;
                   modbus.outRegs.coordinate = encoder;
+               } else if (modbus.inRegs.coordinate == 0 and encoder == 0 and Origin::isClear()){
+                  lost_coordinate = true;
+                  state = State::search_;
                } else 
-               automatic();
+                  automatic();
             break;
             case calibration_:
                if (Sense_up::isClear()) {
