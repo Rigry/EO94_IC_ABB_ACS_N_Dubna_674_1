@@ -25,7 +25,7 @@ struct Operation {
    bool left        :1; // Bit 9 Left: move left (1);
    bool up          :1; // Bit 10 Up: up (1);
    bool down        :1; // Bit 11 Down: down (1);
-   uint16_t res     :5; // Bits 15:12 res: Reserved, must be kept cleared
+   uint16_t res     :4; // Bits 15:12 res: Reserved, must be kept cleared
 };
 struct Sensors {
    bool sense_right:1;  // Bit 0 sense_right: Right Sensor

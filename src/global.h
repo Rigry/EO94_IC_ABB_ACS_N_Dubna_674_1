@@ -20,6 +20,7 @@ class Global
    Calibration calibration;
 
    bool zero {false};
+   bool falling {false};
    bool lost_coordinate {true};
    bool calibration_done {false};
    void state_wait          (){state = State::wait_; modbus.outRegs.states.mode = States::Mode::wait;}
@@ -290,7 +291,16 @@ public:
             case emergency_:
             break;
             case manual_:
-               manual();
+               // if (Tilt::isClear() and falling) {
+               //    falling = false;
+               //    manual.stop();
+               //    lost_coordinate = true;
+               //    modbus.outRegs.states.lost = lost_coordinate;
+               // } else if (not falling) {
+               //    if (Tilt::isSet())
+               //       falling = true;
+                  manual();
+               // }
             break;
          }
    }
