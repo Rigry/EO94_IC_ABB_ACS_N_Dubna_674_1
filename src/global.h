@@ -19,6 +19,8 @@ class Global
    Automatic automatic;
    Calibration calibration;
 
+   Timer pause;
+
    bool zero {false};
    bool falling {false};
    bool lost_coordinate {true};
@@ -173,7 +175,9 @@ public:
                }
             } else if (state_is_emergency()) {
                if (modbus.inRegs.operation.mode == Operation::Mode::manual_mode) {
-                  state_manual();
+                  if (pause.done()) {
+                     state_manual();
+                  }
                }
                if (not modbus.inRegs.operation.enable) {
                   state_wait();
@@ -233,6 +237,7 @@ public:
                      state = State::emergency_;
                      modbus.outRegs.states.mode = States::Mode::emergency;
                   } else if (Tilt::isClear()) {
+                     falling = true;
                      lost_coordinate = true;
                      modbus.outRegs.states.lost = lost_coordinate;
                      search.stop();
@@ -246,6 +251,7 @@ public:
                   state = State::search_;
                   modbus.outRegs.states.mode = States::Mode::search;
                } else if (Tilt::isClear()) {
+                  falling = true;
                   lost_coordinate = true;
                   modbus.outRegs.states.lost = lost_coordinate;
                   automatic.stop();
@@ -280,6 +286,7 @@ public:
                      modbus.outRegs.states.mode = States::Mode::auto_mode;
                      calibration_done = true;
                   } else if (Tilt::isClear()) {
+                     falling = true;
                      lost_coordinate = true;
                      modbus.outRegs.states.lost = lost_coordinate;
                      calibration.stop();
@@ -291,16 +298,21 @@ public:
             case emergency_:
             break;
             case manual_:
-               // if (Tilt::isClear() and falling) {
-               //    falling = false;
-               //    manual.stop();
-               //    lost_coordinate = true;
-               //    modbus.outRegs.states.lost = lost_coordinate;
-               // } else if (not falling) {
-               //    if (Tilt::isSet())
-               //       falling = true;
+               if (Tilt::isClear() and falling) {
                   manual();
-               // }
+               } else if (Tilt::isClear() and not falling) {
+                  manual.stop();
+                  falling = true;
+                  lost_coordinate = true;
+                  pause.stop();
+                  pause.start(2000);
+                  modbus.outRegs.states.lost = lost_coordinate;
+                  state = State::emergency_;
+                  modbus.outRegs.states.mode = States::Mode::emergency;
+               } else if (Tilt::isSet()) {
+                  manual();
+                  falling = false;
+               }
             break;
          }
    }
