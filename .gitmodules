@@ -1,0 +1,3 @@
+[submodule "mculib2"]
+	path = mculib2
+	url = https://portal.office.alexplus.ru:3000/electronics/mculib2.git

@@ -20,7 +20,8 @@ BUILD_DIR = build
 ######################################
 # LIBRARY_PATH = /net/factory/share/projects/code/mculib2
 # LIBRARY_PATH = /net/factory/users/dvk/code/mculib2
-LIBRARY_PATH = ../mculib2/
+LIBRARY_PATH = mculib2
+MCULIB_VERSION = d14308ac97e448953aaaccac59ea6b82a5919139
 
 CPP_SOURCES_F0 = src/main.cpp
 
@@ -92,7 +93,7 @@ LDFLAGS_F0  = $(MCU_F0) -specs=nano.specs -specs=nosys.specs
 LDFLAGS_F0 += -T$(LDSCRIPT_F0) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET_F0).map,--cref -Wl,--gc-sections
 
 # default action: build all
-all: clean \
+all: clean submodule \
 $(BUILD_DIR)/$(TARGET_F0).elf $(BUILD_DIR)/$(TARGET_F0).hex $(BUILD_DIR)/$(TARGET_F0).bin
 	
 
@@ -145,6 +146,17 @@ util:
 	#/home/slonegd/Code/stlink/build/Release/src/gdbserver/st-util
 	#/home/peltikhin/code/EmbeddedArm/stlink/build/Release/src/gdbserver/st-util
 	st-util
+
+submodule:
+
+	git submodule update --init
+
+	cd mculib2/ && git fetch
+
+	cd mculib2/ && git checkout $(MCULIB_VERSION)
+
+	cd mculib2/ && git submodule update --init
+
  
 test_:
 	$(MAKE) -I $(LIBRARY_PATH) -C ./test/
