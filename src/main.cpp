@@ -38,7 +38,8 @@ using Sense_down  = DI4;
 using Sense_right = DI5;
 using Sense_left  = DI6;
 using Origin      = DI7;
-using Tilt        = DI8;
+using Tilt_1      = DI8;
+using Tilt_2      = DI9;
 using Up          = DO7;
 using Down        = DO8;
 using Speed       = DO1;
@@ -62,7 +63,7 @@ int main(void)
    using Modbus      = MBslave     <InRegs, OutRegs, USART_>;
    using Flash       = decltype(flash);
    using Global      = Global      <Modbus, Flash, Encoder, Horizontal, Vertical, Manual, Search, Automatic,
-                                    Calibration, Control, Origin, Sense_up, Sense_down, Tilt, Sense_right, Sense_left>;
+                                    Calibration, Control, Origin, Sense_up, Sense_down, Tilt_1, Tilt_2, Sense_right, Sense_left>;
 
    Global global {modbus, flash};
    // Control control{modbus.outRegs.states};

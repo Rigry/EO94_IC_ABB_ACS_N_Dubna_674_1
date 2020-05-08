@@ -4,7 +4,7 @@
 #define ADR(reg) GET_ADR(InRegs, reg)
 
 template <class Modbus, class Flash, class Encoder, class Horizontal, class Vertical, class Manual, class Search, class Automatic,
-          class Calibration, class Control, class Origin, class Sense_up, class Sense_down, class Tilt, class Sense_right, class Sense_left>
+          class Calibration, class Control, class Origin, class Sense_up, class Sense_down, class Tilt_1, class Tilt_2, class Sense_right, class Sense_left>
 class Global
 {
    enum State {wait_, search_, automatic_, calibration_, manual_, emergency_} state {State::wait_};
@@ -169,7 +169,7 @@ public:
                } else if (modbus.inRegs.operation.left and not modbus.inRegs.operation.right and not modbus.inRegs.operation.stop_h) {
                   manual.left();
                }
-               if (modbus.inRegs.operation.mode == Operation::Mode::auto_mode and Tilt::isSet()) {
+               if (modbus.inRegs.operation.mode == Operation::Mode::auto_mode and Tilt_1::isSet() and Tilt_2::isSet()) {
                   manual.reset();
                   state_automatic();
                }
@@ -203,7 +203,7 @@ public:
       modbus.outRegs.sensors.sense_right = Sense_right::isSet();
       modbus.outRegs.sensors.sense_left  = Sense_left ::isSet();
       modbus.outRegs.sensors.origin      = Origin     ::isSet();
-      modbus.outRegs.sensors.tilt        = Tilt       ::isSet();
+      modbus.outRegs.sensors.tilt        = (Tilt_1::isSet() or Tilt_2::isSet());
       if (modbus.outRegs.sensors.origin)
          encoder = 0;
       modbus.outRegs.coordinate          = encoder;
@@ -236,7 +236,7 @@ public:
                      search.stop();
                      state = State::emergency_;
                      modbus.outRegs.states.mode = States::Mode::emergency;
-                  } else if (Tilt::isClear()) {
+                  } else if (Tilt_1::isClear() or Tilt_2::isClear()) {
                      falling = true;
                      lost_coordinate = true;
                      modbus.outRegs.states.lost = lost_coordinate;
@@ -250,7 +250,7 @@ public:
                if (lost_coordinate) {
                   state = State::search_;
                   modbus.outRegs.states.mode = States::Mode::search;
-               } else if (Tilt::isClear()) {
+               } else if (Tilt_1::isClear() or Tilt_2::isClear()) {
                   falling = true;
                   lost_coordinate = true;
                   modbus.outRegs.states.lost = lost_coordinate;
@@ -285,7 +285,7 @@ public:
                      state = State::automatic_;
                      modbus.outRegs.states.mode = States::Mode::auto_mode;
                      calibration_done = true;
-                  } else if (Tilt::isClear()) {
+                  } else if (Tilt_1::isClear() or Tilt_2::isClear()) {
                      falling = true;
                      lost_coordinate = true;
                      modbus.outRegs.states.lost = lost_coordinate;
@@ -298,9 +298,9 @@ public:
             case emergency_:
             break;
             case manual_:
-               if (Tilt::isClear() and falling) {
+               if ((Tilt_1::isClear() or Tilt_2::isClear()) and falling) {
                   manual();
-               } else if (Tilt::isClear() and not falling) {
+               } else if ((Tilt_1::isClear() or Tilt_2::isClear()) and not falling) {
                   manual.stop();
                   falling = true;
                   lost_coordinate = true;
@@ -309,7 +309,7 @@ public:
                   modbus.outRegs.states.lost = lost_coordinate;
                   state = State::emergency_;
                   modbus.outRegs.states.mode = States::Mode::emergency;
-               } else if (Tilt::isSet()) {
+               } else if (Tilt_1::isSet() or Tilt_2::isClear()) {
                   manual();
                   falling = false;
                }
