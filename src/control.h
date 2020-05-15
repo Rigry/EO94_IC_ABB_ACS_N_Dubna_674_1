@@ -1,6 +1,6 @@
 #pragma once
 
-template <class Speed, class Launch, class Side, class Finish, class Up, class Down, class EL_brake>
+template <class Speed, class Launch, class Side, class Finish, class Up, class Down>
 struct Control
 {
    States& states;
@@ -14,15 +14,11 @@ struct Control
       Finish  ::template configure<PinConf_t::Output>();
       Up      ::template configure<PinConf_t::Output>();
       Down    ::template configure<PinConf_t::Output>();
-      EL_brake::template configure<PinConf_t::Output>();
    }
-   void up        () {Up      ::set  (); states.up        = true; states.stop_v    = false;
-                      EL_brake::set  ();                                                   }
-   void down      () {Down    ::set  (); states.down      = true; states.stop_v    = false;
-                      EL_brake::set  ();                                                   }
+   void up        () {Up      ::set  (); states.up        = true; states.stop_v    = false;}
+   void down      () {Down    ::set  (); states.down      = true; states.stop_v    = false;}
    void stop_v    () {Up      ::clear(); states.stop_v    = true; states.up        = false;
-                      Down    ::clear();                          states.down      = false;
-                      EL_brake::clear();                                                   }
+                      Down    ::clear();                          states.down      = false;}
    void fast      () {Speed   ::set  (); states.fast      = true; states.slow      = false;}
    void slow      () {Speed   ::clear(); states.slow      = true; states.fast      = false;}
    void right     () {Side    ::clear(); states.right     = true; states.left      = false;}
