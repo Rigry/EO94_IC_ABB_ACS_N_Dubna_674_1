@@ -53,16 +53,16 @@ void Search<Control, Sense_left, Sense_right, Origin, Encoder>::operator()()
    switch (state) {
       case wait:
          if (Origin::isClear()) {
-            if (Sense_left::isSet()) {
+            if (Sense_right::isSet()) {
                control.right();
                control.slow();
                control.start();
-               state = State::right;
-            } else if (Sense_left::isClear()) {
+               state = State::left;
+            } else if (Sense_right::isClear()) {
                control.left ();
                control.slow ();
                control.start();
-               state = State::left;
+               state = State::right;
             }
          } else {
             encoder = 0;
