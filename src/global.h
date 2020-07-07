@@ -309,7 +309,7 @@ public:
                   modbus.outRegs.states.lost = lost_coordinate;
                   state = State::emergency_;
                   modbus.outRegs.states.mode = States::Mode::emergency;
-               } else if (Tilt_1::isSet() or Tilt_2::isClear()) {
+               } else if (Tilt_1::isSet() and Tilt_2::isClear()) {
                   manual();
                   falling = false;
                }
