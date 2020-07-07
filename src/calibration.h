@@ -50,27 +50,27 @@ void Calibration<Control, Sense_left, Sense_right, Encoder>::operator()()
 {
    switch (state) {
       case wait:
-         control.left ();
+         control.right ();
          control.slow ();
          control.fast_stop();
          control.start();
          state = State::right;
       break;
+      case right:
+         if(Sense_right::isSet()) {
+            control.stop_h();
+            control.left();
+            control.slow();
+            control.start();
+            min_coordinate = encoder;
+            state = State::left;
+         }
+      break;
       case left:
          if(Sense_left::isSet()) {
             control.stop_h();
             max_coordinate = encoder;
-            control.right();
-            control.slow();
-            control.start();
             state = State::complete;
-         }
-      break;
-      case right:
-         if(Sense_right::isSet()) {
-            control.stop_h();
-            min_coordinate = encoder;
-            state = State::left;
          }
       break;
       case complete:

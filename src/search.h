@@ -54,12 +54,12 @@ void Search<Control, Sense_left, Sense_right, Origin, Encoder>::operator()()
       case wait:
          if (Origin::isClear()) {
             if (Sense_right::isSet()) {
-               control.right();
+               control.left();
                control.slow();
                control.start();
                state = State::left;
             } else if (Sense_right::isClear()) {
-               control.left ();
+               control.right ();
                control.slow ();
                control.start();
                state = State::right;
@@ -69,18 +69,6 @@ void Search<Control, Sense_left, Sense_right, Origin, Encoder>::operator()()
             state = State::ready;
          }
       break;
-      case left:
-         if(Origin::isSet()) {
-            control.fast_stop();
-            control.stop_h();
-            encoder = 0;
-            state = State::ready;
-         } else if (Sense_left::isSet()) {
-            control.fast_stop();
-            control.stop_h();
-            state = State::wait;
-         }
-      break;
       case right:
          if(Origin::isSet()) {
             control.fast_stop();
@@ -88,6 +76,18 @@ void Search<Control, Sense_left, Sense_right, Origin, Encoder>::operator()()
             encoder = 0;
             state = State::ready;
          } else if (Sense_right::isSet()) {
+            control.fast_stop();
+            control.stop_h();
+            state = State::wait;
+         }
+      break;
+      case left:
+         if(Origin::isSet()) {
+            control.fast_stop();
+            control.stop_h();
+            encoder = 0;
+            state = State::ready;
+         } else if (Sense_left::isSet()) {
             control.fast_stop();
             control.stop_h();
             state = State::unready;
