@@ -9,7 +9,7 @@ TARGET_F0 = EO94_IC_ABB_ACS
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Os
+OPT = -O0
 CPPSTD = -std=c++17
 
 # Build path
@@ -93,7 +93,7 @@ LDFLAGS_F0  = $(MCU_F0) -specs=nano.specs -specs=nosys.specs
 LDFLAGS_F0 += -T$(LDSCRIPT_F0) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET_F0).map,--cref -Wl,--gc-sections
 
 # default action: build all
-all: clean submodule \
+all: clean  \
 $(BUILD_DIR)/$(TARGET_F0).elf $(BUILD_DIR)/$(TARGET_F0).hex $(BUILD_DIR)/$(TARGET_F0).bin
 	
 

@@ -60,42 +60,42 @@ void Horizontal <Control, Encoder>::move(int16_t coordinate)
          case wait:
             encoder.enableInterrupt();
             if (coordinate < encoder) {
-               control.left();
+               control.right();
                if (coordinate >= (encoder - brake)) {
                   control.slow();
                   control.fast_stop();
                   encoder.setCompare(coordinate);
-                  state = State::left_slow;
+                  state = State::right_slow;
                } else if (coordinate < (encoder - brake)) {
                   control.fast();
                   control.slow_stop();
                   encoder.setCompare(coordinate + brake);
-                  state = State::left_fast;
+                  state = State::right_fast;
                } 
                control.start();
             } else if (coordinate > encoder) {
-               control.right();
+               control.left();
                if (coordinate <= (encoder + brake)) {
                   control.slow();
                   control.fast_stop();
                   encoder.setCompare(coordinate);
-                  state = State::right_slow;
+                  state = State::left_slow;
                } else if (coordinate > (encoder + brake)) {
                   control.fast();
                   control.slow_stop();
                   encoder.setCompare(coordinate - brake);
-                  state = State::right_fast;
+                  state = State::left_fast;
                } 
                control.start();
             }
          break;
          case right_fast:
-            if (coordinate <= (encoder + brake)) {
+            if (coordinate <= (encoder - brake)) {
                control.slow();
                goal = encoder + brake;
                encoder.setCompare(goal);
                state = State::braking;
-            } else encoder.setCompare(coordinate - brake);
+            } else encoder.setCompare(coordinate + brake);
          break;
          case right_slow:
             if (coordinate < encoder) {
@@ -103,20 +103,20 @@ void Horizontal <Control, Encoder>::move(int16_t coordinate)
                control.stop_h();
                state = State::wait;
                move (coordinate);
-            } else if (coordinate >= (encoder + brake)) {
-               encoder.setCompare(coordinate - brake);
+            } else if (coordinate >= (encoder - brake)) {
+               encoder.setCompare(coordinate + brake);
                control.fast();
                state = State::right_fast;
             }
          break;
          case left_fast:
-            if (coordinate >= (encoder - brake)) {
-               encoder.setCompare(coordinate + brake);
+            if (coordinate >= (encoder + brake)) {
+               encoder.setCompare(coordinate - brake);
                control.slow();
                goal = encoder - brake;
                encoder.setCompare(goal);
                state = State::braking;
-            } else encoder.setCompare(coordinate + brake);
+            } else encoder.setCompare(coordinate - brake);
          break;
          case left_slow:
             if (coordinate > encoder) {
@@ -124,8 +124,8 @@ void Horizontal <Control, Encoder>::move(int16_t coordinate)
                control.stop_h();
                state = State::wait;
                move (coordinate);
-            } else if (coordinate <= (encoder - brake)) {
-               encoder.setCompare(coordinate + brake);
+            } else if (coordinate <= (encoder + brake)) {
+               encoder.setCompare(coordinate - brake);
                control.fast();
                state = State::left_fast;
             } 
@@ -133,15 +133,15 @@ void Horizontal <Control, Encoder>::move(int16_t coordinate)
          case braking:
             if (control.is_right() and few<right>()) {
                goal = coordinate;
-            } else if (control.is_right() and coordinate > (encoder + brake)) {
+            } else if (control.is_right() and coordinate > (encoder - brake)) {
                control.fast();
-               encoder.setCompare(coordinate - brake);
+               encoder.setCompare(coordinate + brake);
                state = State::right_fast;
             } else if (control.is_left() and few<left>()) {
                goal = coordinate;
-            } else if (control.is_left() and coordinate < (encoder - brake)) {
+            } else if (control.is_left() and coordinate < (encoder + brake)) {
                control.fast();
-               encoder.setCompare(coordinate + brake);
+               encoder.setCompare(coordinate - brake);
                state = State::left_fast;
             }
          break;

@@ -257,13 +257,13 @@ public:
                   automatic.stop();
                   state = State::emergency_;
                   modbus.outRegs.states.mode = States::Mode::emergency;
-               } else if (Sense_left::isSet() and encoder != flash.min_coordinate) {
-                  automatic.stop();
-                  encoder = flash.min_coordinate;
-                  modbus.outRegs.coordinate = encoder;
-               } else if (Sense_right::isSet() and encoder != flash.max_coordinate) {
+               } else if (Sense_left::isSet() and encoder != flash.max_coordinate) {
                   automatic.stop();
                   encoder = flash.max_coordinate;
+                  modbus.outRegs.coordinate = encoder;
+               } else if (Sense_right::isSet() and encoder != flash.min_coordinate) {
+                  automatic.stop();
+                  encoder = flash.min_coordinate;
                   modbus.outRegs.coordinate = encoder;
                } else if (modbus.inRegs.coordinate == 0 and encoder == 0 and Origin::isClear()){
                   lost_coordinate = true;

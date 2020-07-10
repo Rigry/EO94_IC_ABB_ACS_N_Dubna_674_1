@@ -111,7 +111,3 @@ int main(void)
       __WFI();
    }
 }
-
-
-
-
