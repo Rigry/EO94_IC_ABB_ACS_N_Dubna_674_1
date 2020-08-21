@@ -28,30 +28,31 @@ struct Operation {
    uint16_t res     :4; // Bits 15:12 res: Reserved, must be kept cleared
 };
 struct Sensors {
-   bool sense_right:1;  // Bit 0 sense_right: Right Sensor
-   bool sense_left :1;  // Bit 1 sense_left: Left Sensor
-   bool tilt       :1;  // Bit 2 tilt: Emergensy Sensor Tilt
-   bool origin     :1;  // Bit 3 origin: Origin Sensor
-   bool sense_up   :1;  // Bit 4 sense_up: Up Sensor
-   bool sense_down :1;  // Bit 5 sense_down: Down Sensor
-   uint16_t res    :10; // Bits 15:6 res: Reserved, must be kept cleared
+   bool sense_right  :1;  // Bit 0 sense_right: Right Sensor
+   bool sense_left   :1;  // Bit 1 sense_left: Left Sensor
+   bool tilt         :1;  // Bit 2 tilt: Emergensy Sensor Tilt
+   bool origin       :1;  // Bit 3 origin: Origin Sensor
+   bool sense_up     :1;  // Bit 4 sense_up: Up Sensor
+   bool sense_down   :1;  // Bit 5 sense_down: Down Sensor
+   bool sense_middle :1;  // Bit 6 sense_middle: Middle Sensor
+   uint16_t res      :9;  // Bits 15:7 res: Reserved, must be kept cleared
 };
 struct States {
-   enum Mode      {wait = 0b000, auto_mode, manual_mode, search, calibration, emergency};
-   Mode mode      :3;  // Bits 0-2 Mode: wait (000), auto mode (001), manual mode (010), search (011), calibration (100) emergensy (101);
-   bool up        :1;  // Bit 3 up: move up
-   bool down      :1;  // Bit 4 down: move down
-   bool right     :1;  // Bit 5 right: move right
-   bool left      :1;  // Bit 6 left: move left
-   bool fast_stop :1;  // Bit 7 fast_stop
-   bool slow_stop :1;  // Bit 8 slow_stop
-   bool fast      :1;  // Bit 9 fast
-   bool slow      :1;  // Bit 10 slow
-   bool stop_h    :1;  // Bit 11 stop_h: stop horizontal move
-   bool stop_v    :1;  // Bit 12 stop_v: stop vertical move
-   bool enable    :1;  // Bit 13 enable: disable(0), enable (1)
-   bool lost      :1;  // Bit 14 lost: lost_coordinate(1)
-   uint16_t res   :1;  // Bits 15 res: Reserved, must be kept cleared
+   enum Mode       {wait = 0b000, auto_mode, manual_mode, search, calibration, emergency};
+   Mode mode       :3;  // Bits 0-2 Mode: wait (000), auto mode (001), manual mode (010), search (011), calibration (100) emergensy (101);
+   bool up         :1;  // Bit 3 up: move up
+   bool down       :1;  // Bit 4 down: move down
+   bool right      :1;  // Bit 5 right: move right
+   bool left       :1;  // Bit 6 left: move left
+   bool fast_stop  :1;  // Bit 7 fast_stop
+   bool slow_stop  :1;  // Bit 8 slow_stop
+   bool fast       :1;  // Bit 9 fast
+   bool slow       :1;  // Bit 10 slow
+   bool stop_h     :1;  // Bit 11 stop_h: stop horizontal move
+   bool stop_v     :1;  // Bit 12 stop_v: stop vertical move
+   bool enable     :1;  // Bit 13 enable: disable(0), enable (1)
+   bool lost       :1;  // Bit 14 lost: lost_coordinate(1)
+   bool swing_done :1;  // Bits 15 swing_done: end of swaying(1)
 };
 struct Step {
    uint16_t distance :14; // на сколько шагнуть
@@ -89,6 +90,7 @@ struct InRegs {
    uint16_t  time_pause;      // 6
    Operation operation;       // 7
    Step      step;            // 8
+   uint16_t  swing;           // 9
    // uint16_t  delta;
    // int16_t   origin;
    // Zone      zone;
