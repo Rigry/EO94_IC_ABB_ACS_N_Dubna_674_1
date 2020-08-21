@@ -5,6 +5,7 @@
 #include "automatic.h"
 #include "calibration.h"
 #include "vertical.h"
+#include "swing.h"
 #include "horizontal.h"
 #include "manual.h"
 #include "control.h"
@@ -33,19 +34,20 @@ using DO6  = PB4 ;
 using DO7  = PB3 ;
 using DO8  = PA15;
 
-using Sense_up    = DI3;
-using Sense_down  = DI4;
-using Sense_right = DI5;
-using Sense_left  = DI6;
-using Origin      = DI7;
-using Tilt_1      = DI8;
-using Tilt_2      = DI9;
-using Up          = DO7;
-using Down        = DO8;
-using Speed       = DO1;
-using Launch      = DO2;
-using Side        = DO3;
-using Finish      = DO4;
+using Sense_up     = DI3;
+using Sense_down   = DI4;
+using Sense_right  = DI5;
+using Sense_left   = DI6;
+using Origin       = DI7;
+using Tilt_1       = DI8;
+using Tilt_2       = DI9;
+using Sense_middle = DI10;
+using Up           = DO7;
+using Down         = DO8;
+using Speed        = DO1;
+using Launch       = DO2;
+using Side         = DO3;
+using Finish       = DO4;
 
 __IO auto pa = reinterpret_cast<PA*>(PA::Base);
 
@@ -55,14 +57,15 @@ int main(void)
    using Control     = Control     <Speed, Launch, Side, Finish, Up, Down>;
    using Horizontal  = Horizontal  <Control, Encoder>;
    using Vertical    = Vertical    <Control, Sense_up, Sense_down>;
-   using Automatic   = Automatic   <Horizontal, Vertical, Encoder>;
+   using Swing       = Swing       <Control, Sense_up, Sense_middle, Sense_down>;
+   using Automatic   = Automatic   <Horizontal, Vertical, Swing, Encoder>;
    using Calibration = Calibration <Control, Sense_left, Sense_right, Encoder>;
    using Search      = Search      <Control, Sense_left, Sense_right, Origin, Encoder>;
    using Manual      = Manual      <Control, Vertical, Sense_left, Sense_right, Encoder>;
    using Modbus      = MBslave     <InRegs, OutRegs, USART_>;
    using Flash       = decltype(flash);
-   using Global      = Global      <Modbus, Flash, Encoder, Horizontal, Vertical, Manual, Search, Automatic,
-                                    Calibration, Control, Origin, Sense_up, Sense_down, Tilt_1, Tilt_2, Sense_right, Sense_left>;
+   using Global      = Global      <Modbus, Flash, Encoder, Horizontal, Vertical, Swing, Manual, Search, Automatic,
+                                    Calibration, Control, Origin, Sense_up, Sense_middle, Sense_down, Tilt_1, Tilt_2, Sense_right, Sense_left>;
 
    Global global {modbus, flash};
    // Control control{modbus.outRegs.states};

@@ -3,8 +3,8 @@
 
 #define ADR(reg) GET_ADR(InRegs, reg)
 
-template <class Modbus, class Flash, class Encoder, class Horizontal, class Vertical, class Manual, class Search, class Automatic,
-          class Calibration, class Control, class Origin, class Sense_up, class Sense_down, class Tilt_1, class Tilt_2, class Sense_right, class Sense_left>
+template <class Modbus, class Flash, class Encoder, class Horizontal, class Vertical, class Swing, class Manual, class Search, class Automatic,
+          class Calibration, class Control, class Origin, class Sense_up, class Sense_middle, class Sense_down, class Tilt_1, class Tilt_2, class Sense_right, class Sense_left>
 class Global
 {
    enum State {wait_, search_, automatic_, calibration_, manual_, emergency_} state {State::wait_};
@@ -14,6 +14,7 @@ class Global
    Encoder encoder {};
    Horizontal horizontal;
    Vertical vertical;
+   Swing swing;
    Manual  manual;
    Search search;
    Automatic automatic;
@@ -46,9 +47,10 @@ public:
       , control     {modbus.outRegs.states}
       , horizontal  {control, encoder, flash.brake}
       , vertical    {control, flash.time_pause}
+      , swing       {control, flash.time_pause}
       , manual      {control, vertical, encoder}
       , search      {control, encoder}
-      , automatic   {horizontal, vertical, encoder}
+      , automatic   {horizontal, vertical, swing, encoder}
       , calibration {control, encoder, flash.min_coordinate, flash.max_coordinate}
    {control.init();}
    Encoder get_encoder(){return encoder;}
@@ -82,6 +84,9 @@ public:
                if (state_is_automatic())
                   automatic.move(modbus.inRegs.coordinate);
             break;
+         case ADR (swing):
+               if (state_is_automatic())
+                  swing.start(modbus.inRegs.swing);
          case ADR (brake):
             flash.brake
                = horizontal.brake
@@ -198,19 +203,20 @@ public:
 }
    void operator()()
    {
-      modbus.outRegs.sensors.sense_up    = Sense_up   ::isSet();
-      modbus.outRegs.sensors.sense_down  = Sense_down ::isSet();
-      modbus.outRegs.sensors.sense_right = Sense_right::isSet();
-      modbus.outRegs.sensors.sense_left  = Sense_left ::isSet();
-      modbus.outRegs.sensors.origin      = Origin     ::isSet();
-      modbus.outRegs.sensors.tilt        = (Tilt_1::isSet() or Tilt_2::isSet());
-      if (modbus.outRegs.sensors.origin)
-         encoder = 0;
-      modbus.outRegs.coordinate          = encoder;
-      modbus.outRegs.states.enable       = modbus.inRegs.operation.enable;
-      modbus.outRegs.states.lost         = lost_coordinate;
-      modbus.outRegs.states.stop_h       = not Control::Launch_::isSet();
-      modbus.outRegs.states.stop_v       = not control.states.up and not control.states.down;
+      modbus.outRegs.sensors.sense_up     = Sense_up    ::isSet();
+      modbus.outRegs.sensors.sense_middle = Sense_middle::isSet();
+      modbus.outRegs.sensors.sense_down   = Sense_down  ::isSet();
+      modbus.outRegs.sensors.sense_right  = Sense_right ::isSet();
+      modbus.outRegs.sensors.sense_left   = Sense_left  ::isSet();
+      modbus.outRegs.sensors.origin       = Origin      ::isSet();
+      modbus.outRegs.sensors.tilt         = (Tilt_1::isSet() or Tilt_2::isSet());
+      if (modbus.outRegs.sensors.origin) encoder = 0;
+      modbus.outRegs.coordinate           = encoder;
+      modbus.outRegs.states.enable        = modbus.inRegs.operation.enable;
+      modbus.outRegs.states.swing_done    = swing.is_done();
+      modbus.outRegs.states.lost          = lost_coordinate;
+      modbus.outRegs.states.stop_h        = not Control::Launch_::isSet();
+      modbus.outRegs.states.stop_v        = not control.states.up and not control.states.down;
       switch (state) {
             case wait_:
             // wait enable from modbus
