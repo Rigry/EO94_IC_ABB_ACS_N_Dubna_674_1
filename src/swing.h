@@ -66,8 +66,10 @@ void Swing<Control, Sense_up, Sense_middle, Sense_down>::start (uint16_t qty_swi
       } else if (state == State::Pause_Wait) {
             state = State::Pause_Wait;
       }
-   } else if (qty_swings == 0) 
+   } else if (qty_swings == 0) {
       done = false;
+      state = State::Wait;
+   }
 }
 
 template <class Control, class Sense_up, class Sense_middle, class Sense_down>
